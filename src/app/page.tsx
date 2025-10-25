@@ -1,14 +1,44 @@
-import { Header } from "@/components/common/header";
+import { desc } from "drizzle-orm";
 
-export default function Home() {
+import CategorySelector from "@/components/common/category-selector";
+import Footer from "@/components/common/footer";
+import { Header } from "@/components/common/header";
+import ProductList from "@/components/common/product-list";
+import { db } from "@/db";
+import { productTable } from "@/db/schema";
+
+const Home = async () => {
+  const products = await db.query.productTable.findMany({
+    with: {
+      variants: true,
+    },
+  });
+  const newlyCreatedProducts = await db.query.productTable.findMany({
+    orderBy: [desc(productTable.createdAt)],
+    with: {
+      variants: true,
+    },
+  });
+  const categories = await db.query.categoryTable.findMany({});
+
   return (
-    <div>
+    <>
       <Header />
       {/* Separator */}
-      <div className="mt-15"></div>
-      <div className="mt-200 w-full flex justify-center h-[200px] items-center bg-gray-200">
-        <h2>Welcome to Cold Breeze</h2>
+      <div className="mt-17"></div>
+      <div className="space-y-6">
+
+        <ProductList products={products} title="Mais vendidos" />
+
+        <div className="px-5">
+          <CategorySelector categories={categories} />
+        </div>
+
+        <ProductList products={newlyCreatedProducts} title="Novos produtos" />
+        <Footer />
       </div>
-    </div>
+    </>
   );
-}
+};
+
+export default Home;
