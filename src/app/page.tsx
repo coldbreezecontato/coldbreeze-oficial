@@ -1,10 +1,14 @@
-import { Button } from "@/components/ui/button";
+import { Header } from "@/components/common/header";
 
 export default function Home() {
   return (
     <div>
-      <h1>Hello World</h1>
-      <Button>Click me</Button>
+      <Header />
+      {/* Separator */}
+      <div className="mt-15"></div>
+      <div className="mt-200 w-full flex justify-center h-[200px] items-center bg-gray-200">
+        <h2>Welcome to Cold Breeze</h2>
+      </div>
     </div>
   );
 }
