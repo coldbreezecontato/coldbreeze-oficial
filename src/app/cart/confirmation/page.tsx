@@ -47,7 +47,6 @@ const ConfirmationPage = async () => {
   return (
     <div>
       <Header />
-      <div className="mt-20"></div>
       <div className="space-y-4 px-5">
         <Card>
           <CardHeader>
