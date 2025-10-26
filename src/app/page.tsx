@@ -24,7 +24,7 @@ const Home = async () => {
   return (
     <>
       <Header />
-      <div className="mt-18"></div>
+      <div className="mt-10"></div>
       
       <div className="space-y-6">
 
