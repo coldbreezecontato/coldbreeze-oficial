@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Menu from "../common/menulink";
 import { useEffect, useState } from "react";
+import { Cart } from "./cart";
 
 export const Header = () => {
   const [showNav, setShowNav] = useState(true);
@@ -30,10 +31,11 @@ export const Header = () => {
       } backdrop-blur-md bg-black`}>
 
       <Link href="/">
-        <Image src="/logo.svg" alt="Cold Breeze" width={50} height={50} className=""/>
+        <Image src="/logo.svg" alt="Cold Breeze" width={50} height={50}/>
       </Link>
 
-      <div className="flex items-center">
+      <div className="flex items-center gap-3">
+        <Cart />
         <Menu />
       </div>
 

@@ -24,8 +24,8 @@ const Home = async () => {
   return (
     <>
       <Header />
-      {/* Separator */}
-      <div className="mt-17"></div>
+      <div className="mt-18"></div>
+      
       <div className="space-y-6">
 
         <ProductList products={products} title="Mais vendidos" />

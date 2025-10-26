@@ -19,7 +19,7 @@ const menuLink = () => {
     <div>
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="secondary" size="icon" className="bg-blue-200 h-10 w-10 hover:bg-blue-300 cursor-pointer">
+          <Button variant="outline" size="icon" className="bg-blue-200 h-8 w-8 cursor-pointer">
             <MenuIcon />
           </Button>
         </SheetTrigger>
