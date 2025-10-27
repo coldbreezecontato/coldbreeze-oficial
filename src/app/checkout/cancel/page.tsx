@@ -35,25 +35,17 @@ const CheckoutCancelPage = () => {
             tentar novamente.
           </DialogDescription>
 
-          <DialogFooter className="flex flex-col sm:flex-row gap-3 mt-4">
-            <Button
-              className="rounded-full"
-              variant="default"
-              size="lg"
-              asChild
-            >
-              <Link href="/cart">Tentar novamente</Link>
-            </Button>
+          <DialogFooter className="flex justify-center w-full">
+  <Button
+    className="w-full rounded-full text-base font-medium"
+    variant="outline"
+    size="lg"
+    asChild
+  >
+    <Link href="/">Voltar para a loja</Link>
+  </Button>
+</DialogFooter>
 
-            <Button
-              className="rounded-full"
-              variant="outline"
-              size="lg"
-              asChild
-            >
-              <Link href="/">Voltar para a loja</Link>
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
