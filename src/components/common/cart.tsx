@@ -20,13 +20,30 @@ import CartItem from "./cart-item";
 
 export const Cart = () => {
   const { data: cart } = useCart();
+
+  // 🧮 Soma total de itens do carrinho
+  const totalItems =
+    cart?.items?.reduce((acc, item) => acc + item.quantity, 0) ?? 0;
+
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon">
-          <ShoppingBasketIcon />
-        </Button>
+        <div className="relative">
+          <Button variant="outline" size="icon">
+            <ShoppingBasketIcon />
+          </Button>
+
+          {totalItems > 0 && (
+            <span
+              className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center 
+              rounded-full bg-red-500 text-[10px] font-bold text-white shadow-md"
+            >
+              {totalItems}
+            </span>
+          )}
+        </div>
       </SheetTrigger>
+
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Carrinho</SheetTitle>
@@ -87,5 +104,3 @@ export const Cart = () => {
     </Sheet>
   );
 };
-
-// SERVER ACTION
