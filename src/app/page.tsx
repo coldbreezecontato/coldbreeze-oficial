@@ -1,4 +1,6 @@
 import { desc } from "drizzle-orm";
+import Image from "next/image";
+
 
 import CategorySelector from "@/components/common/category-selector";
 import Footer from "@/components/common/footer";
@@ -6,6 +8,7 @@ import { Header } from "@/components/common/header";
 import ProductList from "@/components/common/product-list";
 import { db } from "@/db";
 import { productTable } from "@/db/schema";
+import { BannerCarousel } from "@/components/common/banner-carousel";
 
 const Home = async () => {
   const products = await db.query.productTable.findMany({
@@ -24,8 +27,11 @@ const Home = async () => {
   return (
     <>
       <Header />
-      <div className="mt-10"></div>
-      
+      <div className="mt-20"></div>
+      <div className="px-2">
+          <BannerCarousel />
+        </div>
+    
       <div className="space-y-6">
 
         <ProductList products={products} title="Mais vendidos" />
