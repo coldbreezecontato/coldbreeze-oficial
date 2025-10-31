@@ -32,17 +32,22 @@ const Home = async () => {
           <BannerCarousel />
         </div>
     
-      <div className="space-y-6">
+      <div className="space-y-2">
 
         <ProductList products={products} title="Mais vendidos" />
 
         <div className="px-1">
           <CategorySelector categories={categories} />
         </div>
-
-        <ProductList products={newlyCreatedProducts} title="Novos produtos" />
-        <Footer />
       </div>
+
+      <div className="bg-black">
+        <ProductList products={newlyCreatedProducts} title="Novos produtos" />
+      </div>
+      <div className="px-2">
+          <BannerCarousel />
+        </div>
+       <Footer />
     </>
   );
 };

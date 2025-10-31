@@ -14,13 +14,10 @@ const ProductList = ({ title, products }: ProductListProps) => {
   return (
     <section>
       {/* 🔹 Título estilizado */}
-      <div className="flex items-center justify-between px-5">
-        <h3 className="text-xl font-semibold tracking-tight text-white/90">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl m-auto mt-4 mb-4 font-semibold text-center text-blue-300">
           {title}
         </h3>
-        <span className="text-sm text-white/50 hover:text-cyan-400 cursor-pointer transition">
-          Ver todos →
-        </span>
       </div>
 
       {/* 🔹 Lista horizontal */}

@@ -28,7 +28,7 @@ export function BannerCarousel() {
                 width={0}
                 height={0}
                 sizes="100vw"
-                className="h-auto w-full rounded-2xl border-1 border-gray-300"
+                className="h-auto w-full rounded-2xl border-none mb-4"
               />
             </CarouselItem>
           ))}

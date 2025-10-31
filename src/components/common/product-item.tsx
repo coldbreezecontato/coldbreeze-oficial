@@ -25,8 +25,6 @@ const ProductItem = ({ product, textContainerClassName }: ProductItemProps) => {
         w-[180px] shrink-0
         rounded-2xl overflow-hidden
         bg-gradient-to-b from-neutral-900 to-neutral-950
-        border border-white/10
-        hover:border-cyan-400/40
         shadow-md hover:shadow-cyan-500/20
         transition-all duration-300
       "
@@ -55,7 +53,7 @@ const ProductItem = ({ product, textContainerClassName }: ProductItemProps) => {
           {product.name}
         </p>
         <p className="text-xs text-white/50 truncate">{product.description ?? "Cold Breeze"}</p>
-        <p className="text-sm font-bold text-cyan-400">
+        <p className="text-sm font-bold text-blue-300">
           {formatCentsToBRL(firstVariant.priceInCents)}
         </p>
       </div>
