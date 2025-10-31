@@ -12,7 +12,7 @@ interface ProductListProps {
 
 const ProductList = ({ title, products }: ProductListProps) => {
   return (
-    <section className="space-y-6">
+    <section>
       {/* 🔹 Título estilizado */}
       <div className="flex items-center justify-between px-5">
         <h3 className="text-xl font-semibold tracking-tight text-white/90">
