@@ -9,6 +9,7 @@ import ProductList from "@/components/common/product-list";
 import { db } from "@/db";
 import { productTable } from "@/db/schema";
 import { BannerCarousel } from "@/components/common/banner-carousel";
+import { BannerCarouselReverse } from "@/components/common/banner-carousel-reverse";
 
 const Home = async () => {
   const products = await db.query.productTable.findMany({
@@ -46,7 +47,7 @@ const Home = async () => {
         <ProductList products={newlyCreatedProducts} title="Novos produtos" />
       </div>
       <div className="px-2">
-          <BannerCarousel />
+          <BannerCarouselReverse />
         </div>
        <Footer />
     </>

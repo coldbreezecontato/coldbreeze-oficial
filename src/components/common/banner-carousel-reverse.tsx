@@ -12,21 +12,21 @@ import {
 
 // Banners MOBILE
 const mobileBanners = [
-  { src: "/mobile/banner-cb.svg", alt: "cold-banner" },
-  { src: "/mobile/banner-02.svg", alt: "cold-banner-02" },
+  { src: "/mobile/banner-05.svg", alt: "cold-banner" },
+  { src: "/mobile/banner-04.svg", alt: "cold-banner-02" },
   { src: "/mobile/banner-03.svg", alt: "cold-banner-03" },
-  { src: "/mobile/banner-04.svg", alt: "cold-banner-04" },
-  { src: "/mobile/banner-05.svg", alt: "cold-banner-05" },
+  { src: "/mobile/banner-02.svg", alt: "cold-banner-04" },
+  { src: "/mobile/banner-cb.svg", alt: "cold-banner-05" },
 ];
 
 // Banners DESKTOP
 const desktopBanners = [
-  { src: "/desktop/pc-banner-01.svg", alt: "Leve uma vida com estilo" },
-  { src: "/desktop/pc-banner-02.svg", alt: "Nova coleção Cold Breeze" },
-  { src: "/desktop/pc-banner-03.svg", alt: "Promoções exclusivas" },
+  { src: "/desktop/pc-banner-02.svg", alt: "Leve uma vida com estilo" },
+  { src: "/desktop/pc-banner-03.svg", alt: "Nova coleção Cold Breeze" },
+  { src: "/desktop/pc-banner-01.svg", alt: "Promoções exclusivas" },
 ];
 
-export function BannerCarousel() {
+export function BannerCarouselReverse() {
   return (
     <div className="px-2 md:px-8">
       {/* --- MOBILE --- */}
