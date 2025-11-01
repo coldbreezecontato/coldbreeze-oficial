@@ -27,8 +27,9 @@ const Home = async () => {
   return (
     <>
       <Header />
-      <div className="mt-20"></div>
-      <div className="px-2">
+      <div className="w-full h-5 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] "></div>
+      <div className="px-2 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] 
+        border-b border-[#0a84ff]/20 ">
           <BannerCarousel />
         </div>
     
@@ -36,12 +37,12 @@ const Home = async () => {
 
         <ProductList products={products} title="Mais vendidos" />
 
-        <div className="px-1 bg-black">
+        <div className="px-1 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]">
           <CategorySelector categories={categories} />
         </div>
       </div>
 
-      <div className="bg-black mb-2">
+      <div className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] mb-2">
         <ProductList products={newlyCreatedProducts} title="Novos produtos" />
       </div>
       <div className="px-2">
