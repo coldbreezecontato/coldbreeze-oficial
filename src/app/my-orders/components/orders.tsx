@@ -35,7 +35,8 @@ const Orders = ({ orders }: OrdersProps) => {
   return (
     <div className="space-y-5 mb-3">
       {orders.map((order) => (
-        <Card key={order.id}>
+        <Card key={order.id} className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] 
+        border-b border-[#0a84ff]/20 text-white">
           <CardContent>
             <Accordion type="single" collapsible key={order.id}>
               <AccordionItem value="item-1">
