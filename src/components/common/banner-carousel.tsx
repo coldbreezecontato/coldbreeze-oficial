@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Autoplay from "embla-carousel-autoplay";
 import {
   Carousel,
   CarouselContent,
@@ -11,9 +12,11 @@ import {
 
 // Banners MOBILE
 const mobileBanners = [
-  { src: "/mobile/banner-cb.jpg", alt: "Leve uma vida com estilo" },
-  { src: "/mobile/banner-02.jpg", alt: "Nova coleção Cold Breeze" },
-  { src: "/mobile/banner-03.jpg", alt: "Promoções exclusivas" },
+  { src: "/mobile/banner-cb.svg", alt: "cold-banner" },
+  { src: "/mobile/banner-02.svg", alt: "cold-banner-02" },
+  { src: "/mobile/banner-03.svg", alt: "cold-banner-03" },
+  { src: "/mobile/banner-04.svg", alt: "cold-banner-04" },
+  { src: "/mobile/banner-05.svg", alt: "cold-banner-05" },
 ];
 
 // Banners DESKTOP
@@ -23,13 +26,20 @@ const desktopBanners = [
   { src: "/desktop/pc-banner-03.svg", alt: "Promoções exclusivas" },
 ];
 
-
 export function BannerCarousel() {
   return (
     <div className="px-2 md:px-8">
       {/* --- MOBILE --- */}
       <div className="md:hidden">
-        <Carousel className="w-full">
+        <Carousel
+          className="w-full"
+          plugins={[
+            Autoplay({
+              delay: 3000,
+              stopOnInteraction: false, 
+            }),
+          ]}
+        >
           <CarouselContent>
             {mobileBanners.map((banner, index) => (
               <CarouselItem key={index}>
@@ -52,7 +62,15 @@ export function BannerCarousel() {
 
       {/* --- DESKTOP --- */}
       <div className="hidden md:block px-0">
-        <Carousel className="w-full">
+        <Carousel
+          className="w-full"
+          plugins={[
+            Autoplay({
+              delay: 4000,
+              stopOnInteraction: false,
+            }),
+          ]}
+        >
           <CarouselContent>
             {desktopBanners.map((banner, index) => (
               <CarouselItem key={index}>
