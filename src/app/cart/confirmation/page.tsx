@@ -47,14 +47,16 @@ const ConfirmationPage = async () => {
   return (
     <div>
       <Header />
-      <div className="mt-20"></div>
+      <div className="mt-5"></div>
       <div className="space-y-4 px-5">
-        <Card>
+        <Card className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] 
+        border-b border-[#0a84ff]/20 text-white">
           <CardHeader>
             <CardTitle>Identificação</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Card>
+            <Card className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] 
+        border-b border-[#0a84ff]/20 text-white">
               <CardContent>
                 <p className="text-sm">{formatAddress(cart.shippingAddress)}</p>
               </CardContent>

@@ -116,7 +116,7 @@ const Addresses = ({
   };
 
   return (
-    <Card>
+    <Card className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] text-white">
       <CardHeader>
         <CardTitle>Identificação</CardTitle>
       </CardHeader>
@@ -139,7 +139,10 @@ const Addresses = ({
             )}
 
             {addresses?.map((address) => (
-              <Card key={address.id}>
+              <Card
+                key={address.id}
+                className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] text-white"
+              >
                 <CardContent>
                   <div className="flex items-start space-x-2">
                     <RadioGroupItem value={address.id} id={address.id} />
@@ -155,7 +158,8 @@ const Addresses = ({
               </Card>
             ))}
 
-            <Card>
+            <Card className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] 
+        border-b border-[#0a84ff]/20 text-white">
               <CardContent>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="add_new" id="add_new" />
@@ -170,7 +174,7 @@ const Addresses = ({
           <div className="mt-4">
             <Button
               onClick={handleGoToPayment}
-              className="w-full"
+              className="w-full cursor-pointer"
               disabled={updateCartShippingAddressMutation.isPending}
             >
               {updateCartShippingAddressMutation.isPending
@@ -194,7 +198,7 @@ const Addresses = ({
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="Digite seu email" {...field} />
+                        <Input placeholder="Digite seu email" {...field} className="border-blue-950"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -211,6 +215,7 @@ const Addresses = ({
                         <Input
                           placeholder="Digite seu nome completo"
                           {...field}
+                          className="border-blue-950"
                         />
                       </FormControl>
                       <FormMessage />
@@ -230,6 +235,7 @@ const Addresses = ({
                           placeholder="000.000.000-00"
                           customInput={Input}
                           {...field}
+                          className="border-blue-950"
                         />
                       </FormControl>
                       <FormMessage />
@@ -249,6 +255,7 @@ const Addresses = ({
                           placeholder="(11) 99999-9999"
                           customInput={Input}
                           {...field}
+                          className="border-blue-950"
                         />
                       </FormControl>
                       <FormMessage />
@@ -268,6 +275,7 @@ const Addresses = ({
                           placeholder="00000-000"
                           customInput={Input}
                           {...field}
+                          className="border-blue-950"
                         />
                       </FormControl>
                       <FormMessage />
@@ -282,7 +290,7 @@ const Addresses = ({
                     <FormItem>
                       <FormLabel>Endereço</FormLabel>
                       <FormControl>
-                        <Input placeholder="Digite seu endereço" {...field} />
+                        <Input placeholder="Digite seu endereço" {...field} className="border-blue-950"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -296,7 +304,7 @@ const Addresses = ({
                     <FormItem>
                       <FormLabel>Número</FormLabel>
                       <FormControl>
-                        <Input placeholder="Digite o número" {...field} />
+                        <Input placeholder="Digite o número" {...field} className="border-blue-950"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -313,6 +321,7 @@ const Addresses = ({
                         <Input
                           placeholder="Apto, bloco, etc. (opcional)"
                           {...field}
+                          className="border-blue-950"
                         />
                       </FormControl>
                       <FormMessage />
@@ -327,7 +336,7 @@ const Addresses = ({
                     <FormItem>
                       <FormLabel>Bairro</FormLabel>
                       <FormControl>
-                        <Input placeholder="Digite o bairro" {...field} />
+                        <Input placeholder="Digite o bairro" {...field} className="border-blue-950"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -341,7 +350,7 @@ const Addresses = ({
                     <FormItem>
                       <FormLabel>Cidade</FormLabel>
                       <FormControl>
-                        <Input placeholder="Digite a cidade" {...field} />
+                        <Input placeholder="Digite a cidade" {...field} className="border-blue-950"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -355,7 +364,7 @@ const Addresses = ({
                     <FormItem>
                       <FormLabel>Estado</FormLabel>
                       <FormControl>
-                        <Input placeholder="Digite o estado" {...field} />
+                        <Input placeholder="Digite o estado" {...field} className="border-blue-950"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

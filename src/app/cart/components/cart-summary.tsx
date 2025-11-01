@@ -24,7 +24,8 @@ const CartSummary = ({
   products,
 }: CartSummaryProps) => {
   return (
-    <Card>
+    <Card className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] 
+        border-b border-[#0a84ff]/20 text-white">
       <CardHeader>
         <CardTitle>Resumo</CardTitle>
       </CardHeader>
