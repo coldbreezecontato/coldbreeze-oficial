@@ -81,7 +81,8 @@ const SignUpForm = () => {
 
   return (
     <>
-      <Card className="w-full">
+      <Card className="w-full bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] 
+        border-b border-[#0a84ff]/20 text-white">
         <CardHeader>
           <CardTitle>Criar conta</CardTitle>
           <CardDescription>Crie uma conta para continuar.</CardDescription>
@@ -97,7 +98,7 @@ const SignUpForm = () => {
                   <FormItem>
                     <FormLabel>Nome</FormLabel>
                     <FormControl>
-                      <Input placeholder="Digite seu nome" {...field} />
+                      <Input placeholder="Digite seu nome" {...field} className="border-blue-950"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -110,7 +111,7 @@ const SignUpForm = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Digite seu email" {...field} />
+                      <Input placeholder="Digite seu email" {...field} className="border-blue-950"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -127,6 +128,7 @@ const SignUpForm = () => {
                         placeholder="Digite sua senha"
                         type="password"
                         {...field}
+                        className="border-blue-950"
                       />
                     </FormControl>
                     <FormMessage />
@@ -144,6 +146,7 @@ const SignUpForm = () => {
                         placeholder="Digite a sua senha novamente"
                         type="password"
                         {...field}
+                        className="border-blue-950"
                       />
                     </FormControl>
                     <FormMessage />
@@ -152,7 +155,7 @@ const SignUpForm = () => {
               />
             </CardContent>
             <CardFooter>
-              <Button type="submit">Criar conta</Button>
+              <Button type="submit" className="w-full cursor-pointer">Criar conta</Button>
             </CardFooter>
           </form>
         </Form>

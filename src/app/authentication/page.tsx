@@ -9,12 +9,12 @@ const Authentication = async () => {
     <>
       <Header />
       {/* Separator */}
-      <div className="mt-15"></div>
+      <div className="mt-5"></div>
       <div className="flex w-full flex-col gap-6 p-5">
         <Tabs defaultValue="sign-in">
-          <TabsList>
-            <TabsTrigger value="sign-in">Entrar</TabsTrigger>
-            <TabsTrigger value="sign-up">Criar conta</TabsTrigger>
+          <TabsList className="bg-[#0a0f1f]">
+            <TabsTrigger value="sign-in" className="cursor-pointer">Entrar</TabsTrigger>
+            <TabsTrigger value="sign-up" className="cursor-pointer">Criar conta</TabsTrigger>
           </TabsList>
           <TabsContent value="sign-in" className="w-full">
             <SignInForm />

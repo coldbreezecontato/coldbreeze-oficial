@@ -80,10 +80,11 @@ const SignInForm = () => {
   };
   return (
     <>
-      <Card className="w-full">
+      <Card className="w-full bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] 
+        border-b border-[#0a84ff]/20 text-white">
         <CardHeader>
           <CardTitle>Entrar</CardTitle>
-          <CardDescription>Faça login para continuar.</CardDescription>
+          <CardDescription>Faça Login.</CardDescription>
         </CardHeader>
 
         <Form {...form}>
@@ -96,7 +97,7 @@ const SignInForm = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Digite seu email" {...field} />
+                      <Input placeholder="Digite seu email" {...field} className="border-blue-950"/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -113,6 +114,7 @@ const SignInForm = () => {
                         placeholder="Digite sua senha"
                         type="password"
                         {...field}
+                        className="border-blue-950"
                       />
                     </FormControl>
                     <FormMessage />
@@ -121,12 +123,12 @@ const SignInForm = () => {
               />
             </CardContent>
             <CardFooter className="flex flex-col gap-2">
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full cursor-pointer">
                 Entrar
               </Button>
               <Button
                 variant="outline"
-                className="w-full"
+                className="w-full cursor-pointer"
                 onClick={handleSignInWithGoogle}
                 type="button"
               >
