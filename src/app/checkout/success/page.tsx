@@ -41,6 +41,14 @@ const CheckoutSuccessPage = () => {
             >
               <Link href="/">Voltar para a loja</Link>
             </Button>
+            <Button
+              className="w-full rounded-full text-base font-medium"
+              variant="outline"
+              size="lg"
+              asChild
+            >
+              <Link href="/my-orders">Meus Pedidos</Link>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
