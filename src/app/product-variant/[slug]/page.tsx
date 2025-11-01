@@ -40,7 +40,7 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
   return (
     <>
       <Header />
-      <div className="mt-15"></div>
+      <div className="mt-3"></div>
 
       <div className="flex flex-col space-y-6 md:flex-row md:space-y-0 mb-5">
         <Image
@@ -60,22 +60,22 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
             />
           </div>
 
-          <div className="px-5">
+          <div className="px-5 mt-2">
             {/* DESCRIÇÃO */}
             <h2 className="text-lg font-semibold">
               {productVariant.product.name}
             </h2>
-            <h3 className="text-muted-foreground text-sm">
+            <h3 className="text-muted-foreground text-sm mt-2">
               {productVariant.name}
             </h3>
-            <h3 className="text-lg font-semibold">
+            <h3 className="text-lg font-semibold mt-2">
               {formatCentsToBRL(productVariant.priceInCents)}
             </h3>
           </div>
 
           <ProductActions productVariantId={productVariant.id} />
 
-          <div className="px-5">
+          <div className="px-5 mt-3">
             <p className="text-shadow-amber-600">
               {productVariant.product.description}
             </p>

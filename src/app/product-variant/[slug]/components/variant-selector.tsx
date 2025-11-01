@@ -20,7 +20,7 @@ const VariantSelector = ({
           key={variant.id}
           className={
             selectedVariantSlug === variant.slug
-              ? "border-primary rounded-xl border-2"
+              ? "border-blue-950 rounded-2xl border-2"
               : ""
           }
         >
