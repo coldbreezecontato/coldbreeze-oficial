@@ -41,7 +41,7 @@ const Home = async () => {
         </div>
       </div>
 
-      <div className="bg-black">
+      <div className="bg-black mb-2">
         <ProductList products={newlyCreatedProducts} title="Novos produtos" />
       </div>
       <div className="px-2">
