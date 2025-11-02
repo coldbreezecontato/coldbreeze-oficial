@@ -241,9 +241,27 @@ export const orderTable = pgTable("order", {
   phone: text().notNull(),
   email: text().notNull(),
   cpfOrCnpj: text().notNull(),
+  couponId: uuid("coupon_id").references(() => couponTable.id, {
+    onDelete: "set null",
+  }),
   totalPriceInCents: integer("total_price_in_cents").notNull(),
   status: orderStatus().notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// 🔹 Cupom de Desconto
+export const discountTypeEnum = pgEnum("discount_type", ["PERCENT", "FIXED"]);
+
+export const couponTable = pgTable("coupon", {
+  id: uuid().primaryKey().defaultRandom(),
+  code: text("code").notNull().unique(), // Ex: PRIMEIRACOMPRA
+  description: text("description"), // Opcional
+  discountType: discountTypeEnum("discount_type").notNull(), // PERCENT ou FIXED
+  discountValue: integer("discount_value").notNull(), // em %, ou em centavos
+  isActive: boolean("is_active").notNull().default(true),
+  expiresAt: timestamp("expires_at").notNull(), // Data limite de uso
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const orderRelations = relations(orderTable, ({ one, many }) => ({
@@ -254,6 +272,10 @@ export const orderRelations = relations(orderTable, ({ one, many }) => ({
   shippingAddress: one(shippingAddressTable, {
     fields: [orderTable.shippingAddressId],
     references: [shippingAddressTable.id],
+  }),
+  coupon: one(couponTable, {
+    fields: [orderTable.couponId],
+    references: [couponTable.id],
   }),
   items: many(orderItemTable),
 }));
