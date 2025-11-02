@@ -10,8 +10,8 @@ export const auth = betterAuth({
   },
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
   },
   database: drizzleAdapter(db, {
@@ -30,4 +30,21 @@ export const auth = betterAuth({
   verification: {
     modelName: "verificationTable",
   },
+
+  // 🔥 ADICIONE ISSO ABAIXO
+  cookies: {
+    sessionToken: {
+      name: "__Secure-better-auth.session-token",
+      options: {
+        httpOnly: true,
+        secure: true,          // 🔥 obrigatório em HTTPS
+        sameSite: "none",      // 🔥 necessário para mobile
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7, // 7 dias
+      },
+    },
+  },
+
+  // 🔹 E adicione isso também para garantir compatibilidade
+  trustHost: true,
 });
