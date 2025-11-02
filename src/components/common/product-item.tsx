@@ -22,7 +22,7 @@ const ProductItem = ({ product, textContainerClassName }: ProductItemProps) => {
       href={`/product-variant/${firstVariant.slug}`}
       className="
         group flex flex-col gap-3
-        w-[180px] shrink-0
+        w-[240px] shrink-0
         rounded-2xl overflow-hidden
         bg-gradient-to-b from-neutral-900 to-neutral-950
         shadow-md hover:shadow-cyan-500/20

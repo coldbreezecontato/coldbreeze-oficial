@@ -10,6 +10,7 @@ import { db } from "@/db";
 import { productTable } from "@/db/schema";
 import { BannerCarousel } from "@/components/common/banner-carousel";
 import { BannerCarouselReverse } from "@/components/common/banner-carousel-reverse";
+import ProductGrid from "@/components/common/product-grid";
 
 const Home = async () => {
   const products = await db.query.productTable.findMany({
@@ -44,7 +45,7 @@ const Home = async () => {
       </div>
 
       <div className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] mb-2">
-        <ProductList products={newlyCreatedProducts} title="Novos produtos" />
+        <ProductGrid products={newlyCreatedProducts} title="Novos produtos" />
       </div>
       <div className="px-2">
           <BannerCarouselReverse />

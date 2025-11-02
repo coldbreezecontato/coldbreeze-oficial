@@ -35,7 +35,7 @@ export function BannerCarousel() {
           className="w-full"
           plugins={[
             Autoplay({
-              delay: 2000,
+              delay: 2500,
               stopOnInteraction: false, 
             }),
           ]}
