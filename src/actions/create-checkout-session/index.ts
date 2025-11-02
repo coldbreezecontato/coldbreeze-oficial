@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import Stripe from "stripe";
 
 import { db } from "@/db";
-import { orderItemTable, orderTable } from "@/db/schema";
+import { couponTable, orderItemTable, orderTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import {
   CreateCheckoutSessionSchema,
@@ -19,7 +19,7 @@ export const createCheckoutSession = async (
     throw new Error("Stripe secret key is not set");
   }
 
-  // 🔐 Autenticação
+  // 🔐 Autenticação do usuário
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -29,7 +29,7 @@ export const createCheckoutSession = async (
   }
 
   // ✅ Validação do schema
-  const { orderId } = createCheckoutSessionSchema.parse(data);
+  const { orderId, couponCode } = createCheckoutSessionSchema.parse(data);
 
   // 🔎 Busca o pedido
   const order = await db.query.orderTable.findFirst({
@@ -39,7 +39,7 @@ export const createCheckoutSession = async (
   if (!order) throw new Error("Order not found");
   if (order.userId !== session.user.id) throw new Error("Unauthorized");
 
-  // 🧾 Itens do pedido
+  // 🧾 Itens do pedido com produto e variante
   const orderItems = await db.query.orderItemTable.findMany({
     where: eq(orderItemTable.orderId, orderId),
     with: {
@@ -47,29 +47,67 @@ export const createCheckoutSession = async (
     },
   });
 
+  // ⚙️ Inicializa Stripe
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-  // 💳 Cria a sessão no Stripe
+  // 🏷️ Busca e aplica cupom (caso exista)
+  let activeCoupon: typeof couponTable.$inferSelect | null = null;
+
+  if (couponCode) {
+    const coupon = await db.query.couponTable.findFirst({
+      where: eq(couponTable.code, couponCode),
+    });
+
+    if (coupon && coupon.isActive && coupon.expiresAt > new Date()) {
+      activeCoupon = coupon;
+    }
+  }
+
+  // 💳 Cria sessão de pagamento com produtos reais
   const checkoutSession = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     mode: "payment",
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/cancel`,
-    metadata: { orderId },
-    line_items: orderItems.map((item) => ({
-      price_data: {
-        currency: "brl",
-        product_data: {
-          name: `${item.productVariant.product.name} - ${item.productVariant.name}`,
-          description: item.productVariant.product.description,
-          images: [item.productVariant.imageUrl],
+    metadata: {
+      orderId,
+      couponCode: couponCode || "",
+    },
+    line_items: orderItems.map((item, index) => {
+      // 🔹 Calcula o preço do item com desconto proporcional
+      let priceInCents = item.priceInCents;
+
+      if (activeCoupon) {
+        if (activeCoupon.discountType === "PERCENT") {
+          priceInCents = Math.round(
+            item.priceInCents * (1 - activeCoupon.discountValue / 100),
+          );
+        } else if (activeCoupon.discountType === "FIXED") {
+          // Aplica desconto fixo apenas ao primeiro item
+          if (index === 0) {
+            priceInCents = Math.max(
+              0,
+              item.priceInCents - activeCoupon.discountValue,
+            );
+          }
+        }
+      }
+
+      return {
+        price_data: {
+          currency: "brl",
+          product_data: {
+            name: `${item.productVariant.product.name} - ${item.productVariant.name}`,
+            description: item.productVariant.product.description,
+            images: [item.productVariant.imageUrl],
+          },
+          unit_amount: priceInCents,
         },
-        unit_amount: item.priceInCents,
-      },
-      quantity: item.quantity,
-    })),
+        quantity: item.quantity,
+      };
+    }),
   });
 
-  // ✅ Retorne somente o que o client precisa
+  // ✅ Retorno seguro para o client
   return { id: checkoutSession.id };
 };
