@@ -1,3 +1,5 @@
+"use client";
+
 import { MinusIcon, PlusIcon, TrashIcon } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -30,71 +32,103 @@ const CartItem = ({
 }: CartItemProps) => {
   const removeProductFromCartMutation = useRemoveProductFromCart(id);
   const decreaseCartProductQuantityMutation = useDecreaseCartProduct(id);
-  const increaseCartProductQuantityMutation =
-    useIncreaseCartProduct(productVariantId);
+  const increaseCartProductQuantityMutation = useIncreaseCartProduct(productVariantId);
+
   const handleDeleteClick = () => {
     removeProductFromCartMutation.mutate(undefined, {
-      onSuccess: () => {
-        toast.success("Produto removido do carrinho.");
-      },
-      onError: () => {
-        toast.error("Erro ao remover produto do carrinho.");
-      },
+      onSuccess: () => toast.success("Produto removido do carrinho."),
+      onError: () => toast.error("Erro ao remover produto."),
     });
   };
+
   const handleDecreaseQuantityClick = () => {
     decreaseCartProductQuantityMutation.mutate(undefined, {
-      onSuccess: () => {
-        toast.success("Quantidade do produto diminuida.");
-      },
+      onSuccess: () => toast.success("Quantidade diminuída."),
     });
   };
+
   const handleIncreaseQuantityClick = () => {
     increaseCartProductQuantityMutation.mutate(undefined, {
-      onSuccess: () => {
-        toast.success("Quantidade do produto aumentada.");
-      },
+      onSuccess: () => toast.success("Quantidade aumentada."),
     });
   };
+
   return (
-    <div className="flex items-center justify-between">
+    <div
+      className="
+        flex flex-col sm:flex-row sm:items-center sm:justify-between
+        gap-4 sm:gap-6 rounded-xl border border-white/10
+        bg-gradient-to-b from-[#0a0f1f]/40 to-[#0b1220]/60
+        p-4 transition hover:border-cyan-400/30 hover:shadow-[0_0_12px_rgba(0,255,255,0.15)]
+      "
+    >
+      {/* 🔹 Imagem + infos */}
       <div className="flex items-center gap-4">
-        <Image
-          src={productVariantImageUrl}
-          alt={productVariantName}
-          width={78}
-          height={78}
-          className="rounded-lg"
-        />
-        <div className="flex flex-col gap-1">
-          <p className="text-sm font-semibold">{productName}</p>
-          <p className="text-muted-foreground text-xs font-medium">
-            {productVariantName}
+        <div className="relative flex-shrink-0">
+          <Image
+            src={productVariantImageUrl}
+            alt={productVariantName}
+            width={80}
+            height={80}
+            className="rounded-lg object-cover border border-white/10"
+          />
+        </div>
+
+        <div className="flex flex-col justify-between">
+          <p className="text-sm sm:text-base font-semibold text-white">
+            {productName}
           </p>
-          <div className="flex w-[100px] items-center justify-between rounded-lg border p-1">
+          <p className="text-xs sm:text-sm text-gray-400">{productVariantName}</p>
+
+          {/* 🔹 Contador responsivo */}
+          <div
+            className="
+              mt-2 flex items-center justify-between
+              w-[90px] sm:w-[100px]
+              rounded-lg border border-white/10 bg-[#0a0f1f]/50 p-1
+            "
+          >
             <Button
-              className="h-4 w-4"
               variant="ghost"
+              size="icon"
+              className="h-5 w-5 text-gray-300 hover:text-cyan-300"
               onClick={handleDecreaseQuantityClick}
             >
-              <MinusIcon />
+              <MinusIcon className="w-4 h-4" />
             </Button>
-            <p className="text-xs font-medium">{quantity}</p>
+            <p className="text-xs sm:text-sm font-medium text-white">{quantity}</p>
             <Button
-              className="h-4 w-4"
               variant="ghost"
+              size="icon"
+              className="h-5 w-5 text-gray-300 hover:text-cyan-300"
               onClick={handleIncreaseQuantityClick}
             >
-              <PlusIcon />
+              <PlusIcon className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </div>
-      <div className="flex flex-col items-end justify-center gap-2">
-        <Button variant="outline" size="icon" onClick={handleDeleteClick}>
-          <TrashIcon />
+
+      {/* 🔹 Preço + Remover */}
+      <div
+        className="
+          flex items-center justify-between sm:flex-col sm:items-end sm:justify-center
+          gap-2 sm:gap-3 mt-1 sm:mt-0
+        "
+      >
+        <Button
+          variant="ghost"
+          size="icon"
+          className="
+            h-8 w-8 text-gray-400 hover:text-red-500
+            hover:bg-red-500/10 rounded-full transition
+          "
+          onClick={handleDeleteClick}
+        >
+          <TrashIcon className="w-4 h-4" />
         </Button>
-        <p className="text-sm font-bold">
+
+        <p className="text-sm sm:text-base font-bold text-cyan-300">
           {formatCentsToBRL(productVariantPriceInCents)}
         </p>
       </div>
