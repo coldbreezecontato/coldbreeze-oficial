@@ -1,7 +1,6 @@
 import { desc } from "drizzle-orm";
 import Image from "next/image";
 
-
 import CategorySelector from "@/components/common/category-selector";
 import Footer from "@/components/common/footer";
 import { Header } from "@/components/common/header";
@@ -29,28 +28,26 @@ const Home = async () => {
   return (
     <>
       <Header />
-      <div className="w-full h-5 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] "></div>
-      <div className="px-2 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] 
-        border-b border-[#0a84ff]/20 ">
-          <BannerCarousel />
-        </div>
-    
+      <div className="h-5 w-full bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]"></div>
+      <div className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] px-2">
+        <BannerCarousel />
+      </div>
+
       <div className="space-y-2">
+        <ProductGrid products={newlyCreatedProducts} title="Novos produtos" />
 
-        <ProductList products={products} title="Mais vendidos" />
-
-        <div className="px-1 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]">
+        <div className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] px-1">
           <CategorySelector categories={categories} />
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] mb-2">
-        <ProductGrid products={newlyCreatedProducts} title="Novos produtos" />
+      <div className="mb-2 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]">
+        <ProductList products={products} title="Mais vendidos" />
       </div>
       <div className="px-2">
-          <BannerCarouselReverse />
-        </div>
-       <Footer />
+        <BannerCarouselReverse />
+      </div>
+      <Footer />
     </>
   );
 };
