@@ -19,51 +19,49 @@ export const createCheckoutSession = async (
     throw new Error("Stripe secret key is not set");
   }
 
-  // 🔐 Autenticação do usuário
+  // 🔐 Autenticação
   const session = await auth.api.getSession({
     headers: await headers(),
   });
+  if (!session?.user) throw new Error("Unauthorized");
 
-  if (!session?.user) {
-    throw new Error("Unauthorized");
-  }
-
-  // ✅ Validação do schema
+  // ✅ Validação
   const { orderId, couponCode } = createCheckoutSessionSchema.parse(data);
 
-  // 🔎 Busca o pedido
+  // 🔎 Pedido
   const order = await db.query.orderTable.findFirst({
     where: eq(orderTable.id, orderId),
   });
-
   if (!order) throw new Error("Order not found");
   if (order.userId !== session.user.id) throw new Error("Unauthorized");
 
-  // 🧾 Itens do pedido com produto e variante
+  // 🧾 Itens do pedido
   const orderItems = await db.query.orderItemTable.findMany({
     where: eq(orderItemTable.orderId, orderId),
     with: {
-      productVariant: { with: { product: true } },
+      productVariant: {
+        with: { product: true },
+      },
     },
   });
 
-  // ⚙️ Inicializa Stripe
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  // ⚙️ Stripe
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2024-06-20" as any,
+});
 
-  // 🏷️ Busca e aplica cupom (caso exista)
+  // 🏷️ Cupom
   let activeCoupon: typeof couponTable.$inferSelect | null = null;
-
   if (couponCode) {
     const coupon = await db.query.couponTable.findFirst({
       where: eq(couponTable.code, couponCode),
     });
-
     if (coupon && coupon.isActive && coupon.expiresAt > new Date()) {
       activeCoupon = coupon;
     }
   }
 
-  // 💳 Cria sessão de pagamento com produtos reais
+  // 💳 Cria sessão
   const checkoutSession = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     mode: "payment",
@@ -73,41 +71,42 @@ export const createCheckoutSession = async (
       orderId,
       couponCode: couponCode || "",
     },
-    line_items: orderItems.map((item, index) => {
-      // 🔹 Calcula o preço do item com desconto proporcional
-      let priceInCents = item.priceInCents;
+    line_items: orderItems
+      .filter((item) => !!item.productVariant) // 🔒 segurança extra
+      .map((item, index) => {
+        const variant = item.productVariant!; // ✅ garante que não é null
+        const product = variant.product!;
 
-      if (activeCoupon) {
-        if (activeCoupon.discountType === "PERCENT") {
-          priceInCents = Math.round(
-            item.priceInCents * (1 - activeCoupon.discountValue / 100),
-          );
-        } else if (activeCoupon.discountType === "FIXED") {
-          // Aplica desconto fixo apenas ao primeiro item
-          if (index === 0) {
+        let priceInCents = item.priceInCents;
+
+        if (activeCoupon) {
+          if (activeCoupon.discountType === "PERCENT") {
+            priceInCents = Math.round(
+              item.priceInCents * (1 - activeCoupon.discountValue / 100),
+            );
+          } else if (activeCoupon.discountType === "FIXED" && index === 0) {
             priceInCents = Math.max(
               0,
               item.priceInCents - activeCoupon.discountValue,
             );
           }
         }
-      }
 
-      return {
-        price_data: {
-          currency: "brl",
-          product_data: {
-            name: `${item.productVariant.product.name} - ${item.productVariant.name}`,
-            description: item.productVariant.product.description,
-            images: [item.productVariant.imageUrl],
+        return {
+          price_data: {
+            currency: "brl",
+            product_data: {
+              name: `${product.name} - ${variant.name}`,
+              description: product.description,
+              images: [variant.imageUrl],
+            },
+            unit_amount: priceInCents,
           },
-          unit_amount: priceInCents,
-        },
-        quantity: item.quantity,
-      };
-    }),
+          quantity: item.quantity,
+        };
+      }),
   });
 
-  // ✅ Retorno seguro para o client
+  // ✅ Retorno
   return { id: checkoutSession.id };
 };
