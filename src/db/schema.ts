@@ -286,8 +286,8 @@ export const orderItemTable = pgTable("order_item", {
     .notNull()
     .references(() => orderTable.id, { onDelete: "cascade" }),
   productVariantId: uuid("product_variant_id")
-    .notNull()
-    .references(() => productVariantTable.id, { onDelete: "restrict" }),
+    .references(() => productVariantTable.id, { onDelete: "set null" }),
+
   quantity: integer("quantity").notNull(),
   priceInCents: integer("price_in_cents").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
