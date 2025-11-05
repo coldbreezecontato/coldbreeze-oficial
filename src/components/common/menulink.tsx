@@ -30,7 +30,7 @@ const MenuLink = () => {
           <Button
             variant="outline"
             size="icon"
-            className="bg-black h-9 w-9 md:h-10 md:w-10 cursor-pointer border-none hover:bg-zinc-900 transition-all"
+            className="h-9 w-9 cursor-pointer border-none bg-black transition-all hover:bg-zinc-900 md:h-10 md:w-10"
           >
             <MenuIcon className="text-white" />
           </Button>
@@ -38,23 +38,23 @@ const MenuLink = () => {
 
         <SheetContent
           side="right"
-          className="border-none p-0 bg-gradient-to-br from-[#0a0f1f] via-[#0c1a33] to-[#08111f] text-white overflow-y-auto"
+          className="overflow-y-auto border-none bg-gradient-to-br from-[#0a0f1f] via-[#0c1a33] to-[#08111f] p-0 text-white"
         >
-          <div className="px-6 py-5 border-b border-white/10">
+          <div className="border-b border-white/10 px-6 py-5">
             <SheetHeader>
-              <SheetTitle className="text-lg md:text-xl font-bold tracking-wide text-white/90">
+              <SheetTitle className="text-lg font-bold tracking-wide text-white/90 md:text-xl">
                 Menu
               </SheetTitle>
             </SheetHeader>
           </div>
 
-          <div className="p-6 space-y-8">
+          <div className="space-y-8 p-6">
             {/* 🔹 Usuário autenticado */}
             {session?.user ? (
               <div className="space-y-6">
                 {/* 🔸 Cabeçalho do usuário */}
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                  <div className="flex items-center gap-3 min-w-0">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex min-w-0 items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={session.user.image as string} />
                       <AvatarFallback className="bg-cyan-600 text-white">
@@ -64,10 +64,10 @@ const MenuLink = () => {
                     </Avatar>
 
                     <div className="min-w-0">
-                      <h3 className="font-semibold text-sm md:text-base truncate">
+                      <h3 className="truncate text-sm font-semibold md:text-base">
                         {session.user.name}
                       </h3>
-                      <p className="text-[11px] md:text-xs text-zinc-400 truncate">
+                      <p className="truncate text-[11px] text-zinc-400 md:text-xs">
                         {session.user.email}
                       </p>
                     </div>
@@ -77,7 +77,7 @@ const MenuLink = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => authClient.signOut()}
-                    className="hover:bg-red-600/20 transition"
+                    className="transition hover:bg-red-600/20"
                     title="Sair da conta"
                   >
                     <LogOutIcon className="h-4 w-4 text-red-400" />
@@ -85,11 +85,11 @@ const MenuLink = () => {
                 </div>
 
                 {/* 🔸 Opções da conta */}
-                <div className="flex flex-col gap-2 pt-3 border-t border-white/10">
+                <div className="flex flex-col gap-2 border-t border-white/10 pt-3">
                   <Button
                     asChild
                     variant="ghost"
-                    className="w-full justify-start gap-3 text-sm md:text-base hover:bg-cyan-400 hover:text-black transition rounded-lg py-2"
+                    className="w-full justify-start gap-3 rounded-lg py-2 text-sm transition hover:bg-cyan-400 hover:text-black md:text-base"
                   >
                     <Link href="/my-orders">
                       <PackageSearchIcon className="h-4 w-4 md:h-5 md:w-5" />
@@ -97,6 +97,7 @@ const MenuLink = () => {
                     </Link>
                   </Button>
 
+                  {/*  
                   <Button
                     asChild
                     variant="ghost"
@@ -107,25 +108,16 @@ const MenuLink = () => {
                       Meus Endereços
                     </Link>
                   </Button>
-
-                  <Button
-                    asChild
-                    variant="ghost"
-                    className="w-full justify-start gap-3 text-sm md:text-base hover:bg-cyan-400 hover:text-black transition rounded-lg py-2"
-                  >
-                    <Link href="/cart">
-                      <ShoppingBagIcon className="h-4 w-4 md:h-5 md:w-5" />
-                      Meu Carrinho
-                    </Link>
-                  </Button>
+                   */}
                 </div>
               </div>
             ) : (
               /* 🔹 Usuário não autenticado */
-              <div className="flex items-center justify-between border border-white/10 rounded-xl p-4 backdrop-blur-sm">
+              <div className="flex items-center justify-between rounded-xl border border-white/10 p-4 backdrop-blur-sm">
                 <div>
-                  <h2 className="font-semibold text-sm md:text-base text-white">
-                    Bem-vindo à <span className="text-cyan-400">Cold Breeze</span>
+                  <h2 className="text-sm font-semibold text-white md:text-base">
+                    Bem-vindo à{" "}
+                    <span className="text-cyan-400">Cold Breeze</span>
                   </h2>
                   <p className="text-[12px] text-zinc-400">
                     Faça login para acessar sua conta
@@ -136,7 +128,7 @@ const MenuLink = () => {
                   size="icon"
                   asChild
                   variant="outline"
-                  className="border-zinc-700 bg-transparent hover:bg-cyan-400 hover:text-black transition"
+                  className="border-zinc-700 bg-transparent transition hover:bg-cyan-400 hover:text-black"
                   title="Entrar"
                 >
                   <Link href="/authentication">
@@ -148,7 +140,7 @@ const MenuLink = () => {
           </div>
 
           {/* 🔹 Rodapé do menu */}
-          <div className="px-6 py-4 mt-auto border-t border-white/10 text-[12px] text-zinc-500 text-center">
+          <div className="mt-auto border-t border-white/10 px-6 py-4 text-center text-[12px] text-zinc-500">
             © 2025 Cold Breeze — Todos os direitos reservados.
           </div>
         </SheetContent>
