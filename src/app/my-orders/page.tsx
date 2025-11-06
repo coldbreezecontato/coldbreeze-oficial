@@ -16,15 +16,14 @@ const MyOrdersPage = async () => {
   if (!session?.user.id) {
     redirect("/login");
   }
+
   const orders = await db.query.orderTable.findMany({
     where: eq(orderTable.userId, session?.user.id),
     with: {
       items: {
         with: {
           productVariant: {
-            with: {
-              product: true,
-            },
+            with: { product: true },
           },
         },
       },
@@ -44,10 +43,10 @@ const MyOrdersPage = async () => {
             createdAt: order.createdAt,
             items: order.items.map((item) => ({
               id: item.id,
-              imageUrl: item.productVariant.imageUrl,
-              productName: item.productVariant.product.name,
-              productVariantName: item.productVariant.name,
-              priceInCents: item.productVariant.priceInCents,
+              imageUrl: item.productVariant?.imageUrl ?? "",
+              productName: item.productVariant?.product.name ?? "Produto removido",
+              productVariantName: item.productVariant?.name ?? "",
+              priceInCents: item.productVariant?.priceInCents ?? 0,
               quantity: item.quantity,
             })),
           }))}
