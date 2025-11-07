@@ -8,6 +8,7 @@ import { createProduct, deleteProduct } from "@/actions/admin/admin-products";
 import { categoryTable, productTable } from "@/db/schema";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Header } from "@/components/common/header";
 
 type Category = typeof categoryTable.$inferSelect;
 type Product = typeof productTable.$inferSelect & {
@@ -89,7 +90,9 @@ export default function AdminDashboard({
   // 🧊 Renderização
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a0f1f] to-[#090d18] p-8 text-white">
-      <h1 className="mb-6 text-2xl font-bold">Painel Administrativo 🧊</h1>
+      <Header />
+
+      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
       {/* Formulário de criação */}
       <form onSubmit={handleCreateProduct} className="space-y-6 mb-10">

@@ -33,13 +33,31 @@ export const Header = () => {
         text-center text-xs md:text-sm font-medium tracking-wide 
         text-blue-100 backdrop-blur-md shadow-[0_0_15px_rgba(0,0,50,0.4)]">
         <div className="py-2 px-4 flex items-center justify-center gap-2">
-          <span className="text-[#00aaff] font-semibold">💠 CUPOM:</span>
-          <span className="font-bold text-white tracking-wider bg-[#0a84ff]/20 px-2 py-0.5 rounded-md border border-[#0a84ff]/30">
-            PRIMEIRA COMPRA
+          <div>
+            <Image
+              src="/mascote-logo.svg"
+              alt="Ícone de Desconto"
+              width={30}
+              height={30}
+              className="inline-block"
+            />
+          </div>
+          <span className="text-[#afb9d8] font-semibold"> CUPOM:</span>
+          <span className="font-bold text-white tracking-wider bg-[#afb9d8]/20 px-2 py-0.5 rounded-md border border-[#afb9d8]/30">
+            PRIMEIRACOMPRA
           </span>
           <span className="text-blue-200">
-            — Ganhe <span className="font-bold text-[#00c6ff]">10% OFF</span>
+            — Ganhe <span className="font-bold text-[#afb9d8]">10% OFF</span>
           </span>
+          <div>
+            <Image
+              src="/mascote-logo.svg"
+              alt="Ícone de Desconto"
+              width={30}
+              height={30}
+              className="inline-block"
+            />
+          </div>
         </div>
       </div>
 
@@ -59,7 +77,7 @@ export const Header = () => {
           transition-all duration-300"
         >
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.svg" alt="Cold Breeze" width={45} height={45} />
+            <Image src="/white-logo.svg" alt="Cold Breeze" width={45} height={45} />
           </Link>
 
           <div className="flex items-center gap-3">
