@@ -11,11 +11,7 @@ import {
   deleteSizeAction,
 } from "@/actions/admin/admin-sizes";
 
-import {
-  categoryTable,
-  productTable,
-  productSizeTable,
-} from "@/db/schema";
+import { categoryTable, productTable, productSizeTable } from "@/db/schema";
 
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -28,7 +24,7 @@ type Category = typeof categoryTable.$inferSelect;
 type Size = typeof productSizeTable.$inferSelect;
 
 type Product = typeof productTable.$inferSelect & {
-  category: Category;
+  category: Category | null;
   variants?: {
     id: string;
     color: string;
@@ -101,9 +97,7 @@ export default function AdminDashboard({
       const v = { ...updated[variantIndex] };
       const currentSizes = [...(v.sizes ?? [])];
 
-      const existingIndex = currentSizes.findIndex(
-        (s) => s.sizeId === sizeId,
-      );
+      const existingIndex = currentSizes.findIndex((s) => s.sizeId === sizeId);
 
       // Se não tem estoque ou valor inválido → remove tamanho da variante
       if (stock === null || !Number.isFinite(stock) || stock <= 0) {
@@ -156,14 +150,14 @@ export default function AdminDashboard({
     <div className="min-h-screen bg-gradient-to-b from-[#0a0f1f] to-[#090d18] p-8 text-white">
       <Header />
 
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+      <h1 className="mb-6 text-3xl font-bold">Admin Dashboard</h1>
 
       {/* ---------------- TABELA DE TAMANHOS (CRUD GLOBAL) ---------------- */}
-      <div className="border border-white/10 rounded-lg p-4 mb-10">
-        <h2 className="font-semibold text-lg mb-4">Tamanhos Disponíveis</h2>
+      <div className="mb-10 rounded-lg border border-white/10 p-4">
+        <h2 className="mb-4 text-lg font-semibold">Tamanhos Disponíveis</h2>
 
         {/* FORM CREATE SIZE */}
-        <form action={createSizeAction} className="flex gap-3 mb-4">
+        <form action={createSizeAction} className="mb-4 flex gap-3">
           <Input
             name="sizeName"
             placeholder="Adicionar tamanho (ex: P, M, G, GG, 38...)"
@@ -179,7 +173,7 @@ export default function AdminDashboard({
           {sizes.map((size) => (
             <li
               key={size.id}
-              className="flex justify-between items-center border border-white/10 p-3 rounded-lg"
+              className="flex items-center justify-between rounded-lg border border-white/10 p-3"
             >
               <span>{size.name}</span>
 
@@ -193,20 +187,20 @@ export default function AdminDashboard({
       </div>
 
       {/* ---------------- FORM DE CRIAÇÃO DE PRODUTOS ---------------- */}
-      <form onSubmit={handleCreateProduct} className="space-y-6 mb-10">
+      <form onSubmit={handleCreateProduct} className="mb-10 space-y-6">
         {/* Campos principais */}
-        <div className="flex flex-col md:flex-row gap-3">
+        <div className="flex flex-col gap-3 md:flex-row">
           <Input
             name="name"
             placeholder="Nome do produto"
-            className="text-blue-300 flex-1"
+            className="flex-1 text-blue-300"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
 
           <select
             name="categoryId"
-            className="rounded-lg px-2 py-1 text-black flex-1 bg-white/90"
+            className="flex-1 rounded-lg bg-white/90 px-2 py-1 text-black"
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
           >
@@ -227,15 +221,15 @@ export default function AdminDashboard({
         />
 
         {/* ---------------- VARIANTES + TAMANHOS ---------------- */}
-        <div className="space-y-4 border border-white/10 rounded-lg p-4">
-          <h2 className="font-semibold text-lg">Variantes</h2>
+        <div className="space-y-4 rounded-lg border border-white/10 p-4">
+          <h2 className="text-lg font-semibold">Variantes</h2>
 
           {variants.map((variant, index) => (
             <div
               key={index}
-              className="space-y-3 border border-white/10 rounded-lg p-3"
+              className="space-y-3 rounded-lg border border-white/10 p-3"
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-center">
+              <div className="grid grid-cols-1 items-center gap-2 md:grid-cols-3">
                 <Input
                   placeholder="Cor (ex: Preto, Branco, Vermelho...)"
                   className="text-blue-300"
@@ -266,12 +260,10 @@ export default function AdminDashboard({
 
               {/* TAMANHOS DESSA VARIANTE */}
               <div className="mt-2 space-y-2">
-                <h4 className="text-sm font-medium">
-                  Tamanhos dessa variante
-                </h4>
+                <h4 className="text-sm font-medium">Tamanhos dessa variante</h4>
 
                 {sizes.length === 0 && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     Nenhum tamanho cadastrado ainda. Cadastre acima em
                     &quot;Tamanhos Disponíveis&quot;.
                   </p>
@@ -282,17 +274,16 @@ export default function AdminDashboard({
                     const current = variant.sizes.find(
                       (s) => s.sizeId === size.id,
                     );
-                    const isActive =
-                      current && Number(current.stock) > 0;
+                    const isActive = current && Number(current.stock) > 0;
 
                     return (
                       <div
                         key={size.id}
                         className={
-                          "flex flex-col items-center gap-1 rounded-lg border px-3 py-2 w-[80px] transition-all " +
+                          "flex w-[80px] flex-col items-center gap-1 rounded-lg border px-3 py-2 transition-all " +
                           (isActive
-                            ? "bg-blue-600 border-blue-400 shadow-md"
-                            : "bg-[#111827] border-white/10")
+                            ? "border-blue-400 bg-blue-600 shadow-md"
+                            : "border-white/10 bg-[#111827]")
                         }
                       >
                         <span className="text-xs font-semibold">
@@ -302,18 +293,13 @@ export default function AdminDashboard({
                         <Input
                           type="number"
                           min={0}
-                          className="h-7 text-xs text-blue-50 bg-transparent border border-white/10 focus-visible:ring-0 focus-visible:ring-offset-0"
+                          className="h-7 border border-white/10 bg-transparent text-xs text-blue-50 focus-visible:ring-0 focus-visible:ring-offset-0"
                           placeholder="Qtd"
                           value={current?.stock ?? ""}
                           onChange={(e) => {
                             const raw = e.target.value;
-                            const stock =
-                              raw === "" ? null : Number(raw);
-                            handleSizeStockChange(
-                              index,
-                              size.id,
-                              stock,
-                            );
+                            const stock = raw === "" ? null : Number(raw);
+                            handleSizeStockChange(index, size.id, stock);
                           }}
                         />
                       </div>
@@ -347,9 +333,9 @@ export default function AdminDashboard({
           return (
             <div
               key={product.id}
-              className="rounded-xl border border-white/10 p-4 bg-[#101626] flex items-center gap-4"
+              className="flex items-center gap-4 rounded-xl border border-white/10 bg-[#101626] p-4"
             >
-              <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-white/10">
+              <div className="relative h-24 w-24 overflow-hidden rounded-lg border border-white/10">
                 <Image
                   src={imageUrl}
                   alt={product.name}
@@ -361,9 +347,9 @@ export default function AdminDashboard({
               <div className="flex-1">
                 <h2 className="text-lg font-semibold">{product.name}</h2>
                 <p className="text-sm text-gray-400">
-                  {product.category.name}
+                  {product.category?.name ?? "Sem categoria"}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-gray-500">
                   {product.variants?.length || 0} variante(s)
                 </p>
               </div>
