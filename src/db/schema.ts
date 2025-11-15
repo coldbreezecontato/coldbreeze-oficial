@@ -86,9 +86,10 @@ export const categoryTable = pgTable("category", {
 
 export const productTable = pgTable("product", {
   id: uuid().primaryKey().defaultRandom(),
-  categoryId: uuid("category_id")
-    .notNull()
-    .references(() => categoryTable.id, { onDelete: "set null" }),
+  // se a categoria for deletada, o produto continua, mas sem categoria
+  categoryId: uuid("category_id").references(() => categoryTable.id, {
+    onDelete: "set null",
+  }),
   name: text().notNull(),
   slug: text().notNull().unique(),
   description: text().notNull(),
@@ -113,19 +114,19 @@ export const productVariantTable = pgTable("product_variant", {
 });
 
 /* ============================================================
-   SIZE (NOVO)
+   SIZE
 ============================================================ */
 
 export const productSizeTable = pgTable("product_size", {
   id: uuid().primaryKey().defaultRandom(),
-  name: text("name").notNull(),       // ex: P, M, G
-  slug: text("slug").notNull().unique(), 
+  name: text("name").notNull(), // ex.: P, M, G, GG
+  slug: text("slug").notNull().unique(),
   order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 /* ============================================================
-   VARIANT SIZE (NOVO)
+   VARIANT SIZE
 ============================================================ */
 
 export const productVariantSizeTable = pgTable("product_variant_size", {
@@ -195,7 +196,7 @@ export const cartItemTable = pgTable("cart_item", {
     .notNull()
     .references(() => productVariantTable.id, { onDelete: "cascade" }),
 
-  /* NOVO → tamanho selecionado */
+  // tamanho selecionado (pode ser null se variante não tiver tamanho)
   productVariantSizeId: uuid("product_variant_size_id").references(
     () => productVariantSizeTable.id,
     { onDelete: "set null" },
@@ -238,9 +239,12 @@ export const orderTable = pgTable("order", {
   userId: text("user_id")
     .notNull()
     .references(() => userTable.id, { onDelete: "cascade" }),
+
+  // guardamos o endereço "snapshot" aqui, então se o address for deletado,
+  // o pedido continua válido: por isso set null.
   shippingAddressId: uuid("shipping_address_id")
-    .notNull()
     .references(() => shippingAddressTable.id, { onDelete: "set null" }),
+
   recipientName: text().notNull(),
   street: text().notNull(),
   number: text().notNull(),
@@ -253,9 +257,11 @@ export const orderTable = pgTable("order", {
   phone: text().notNull(),
   email: text().notNull(),
   cpfOrCnpj: text().notNull(),
+
   couponId: uuid("coupon_id").references(() => couponTable.id, {
     onDelete: "set null",
   }),
+
   totalPriceInCents: integer("total_price_in_cents").notNull(),
   status: orderStatus().notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -277,7 +283,6 @@ export const orderItemTable = pgTable("order_item", {
     { onDelete: "set null" },
   ),
 
-  /* NOVO → tamanho do item */
   productVariantSizeId: uuid("product_variant_size_id").references(
     () => productVariantSizeTable.id,
     { onDelete: "set null" },
@@ -320,11 +325,8 @@ export const productVariantRelations = relations(
       fields: [productVariantTable.productId],
       references: [productTable.id],
     }),
-
     cartItems: many(cartItemTable),
     orderItems: many(orderItemTable),
-
-    /* NOVO → tamanhos disponíveis da variante */
     sizes: many(productVariantSizeTable),
   }),
 );
@@ -386,7 +388,6 @@ export const cartItemRelations = relations(cartItemTable, ({ one }) => ({
     fields: [cartItemTable.productVariantId],
     references: [productVariantTable.id],
   }),
-
   productVariantSize: one(productVariantSizeTable, {
     fields: [cartItemTable.productVariantSizeId],
     references: [productVariantSizeTable.id],
