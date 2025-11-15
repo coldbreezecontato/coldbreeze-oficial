@@ -47,7 +47,7 @@ export const useIncreaseCartProduct = (
         return;
       }
 
-      toast.error("Erro ao atualizar o carrinho.");
+      toast.error("Estoque insuficiente! Você atingiu o limite disponível.");
     },
 
     onSuccess: () => {
