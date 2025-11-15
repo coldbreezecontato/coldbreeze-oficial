@@ -10,6 +10,7 @@ import {
   cartTable,
   orderItemTable,
   orderTable,
+  productVariantSizeTable,
 } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
@@ -21,6 +22,7 @@ export const finishOrder = async () => {
     throw new Error("Unauthorized");
   }
 
+  // 🔥 AGORA BUSCANDO O TAMANHO TAMBÉM
   const cart = await db.query.cartTable.findFirst({
     where: eq(cartTable.userId, session.user.id),
     with: {
@@ -28,25 +30,34 @@ export const finishOrder = async () => {
       items: {
         with: {
           productVariant: true,
+          productVariantSize: {
+            with: { size: true },
+          },
         },
       },
     },
   });
+
   if (!cart) {
     throw new Error("Cart not found");
   }
   if (!cart.shippingAddress) {
     throw new Error("Shipping address not found");
   }
+
   const totalPriceInCents = cart.items.reduce(
-    (acc, item) => acc + item.productVariant.priceInCents * item.quantity,
+    (acc, item) =>
+      acc + item.productVariant.priceInCents * item.quantity,
     0,
   );
+
   let orderId: string | undefined;
+
   await db.transaction(async (tx) => {
     if (!cart.shippingAddress) {
       throw new Error("Shipping address not found");
     }
+
     const [order] = await tx
       .insert(orderTable)
       .values({
@@ -56,7 +67,7 @@ export const finishOrder = async () => {
         phone: cart.shippingAddress.phone,
         cpfOrCnpj: cart.shippingAddress.cpfOrCnpj,
         city: cart.shippingAddress.city,
-        complement: cart.shippingAddress.complement,
+        complement: cart.shippingAddress.complement ?? null,
         neighborhood: cart.shippingAddress.neighborhood,
         number: cart.shippingAddress.number,
         recipientName: cart.shippingAddress.recipientName,
@@ -67,23 +78,33 @@ export const finishOrder = async () => {
         shippingAddressId: cart.shippingAddress!.id,
       })
       .returning();
+
     if (!order) {
       throw new Error("Failed to create order");
     }
+
     orderId = order.id;
+
+    // 🔥 SALVANDO O TAMANHO DO PRODUTO NO PEDIDO
     const orderItemsPayload: Array<typeof orderItemTable.$inferInsert> =
       cart.items.map((item) => ({
         orderId: order.id,
         productVariantId: item.productVariant.id,
+        productVariantSizeId: item.productVariantSizeId, // << AQUI ESTAVA FALTANDO!
         quantity: item.quantity,
         priceInCents: item.productVariant.priceInCents,
       }));
+
     await tx.insert(orderItemTable).values(orderItemsPayload);
-    await tx.delete(cartTable).where(eq(cartTable.id, cart.id));
+
+    // limpa carrinho
     await tx.delete(cartItemTable).where(eq(cartItemTable.cartId, cart.id));
+    await tx.delete(cartTable).where(eq(cartTable.id, cart.id));
   });
+
   if (!orderId) {
     throw new Error("Failed to create order");
   }
+
   return { orderId };
 };

@@ -25,6 +25,7 @@ interface OrdersProps {
       imageUrl: string;
       productName: string;
       productVariantName: string;
+      sizeName: string;
       priceInCents: number;
       quantity: number;
     }>;
@@ -33,10 +34,12 @@ interface OrdersProps {
 
 const Orders = ({ orders }: OrdersProps) => {
   return (
-    <div className="space-y-5 mb-3">
+    <div className="mb-3 space-y-5">
       {orders.map((order) => (
-        <Card key={order.id} className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] 
-        border-b border-[#0a84ff]/20 text-white">
+        <Card
+          key={order.id}
+          className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] text-white"
+        >
           <CardContent>
             <Accordion type="single" collapsible key={order.id}>
               <AccordionItem value="item-1">
@@ -78,7 +81,8 @@ const Orders = ({ orders }: OrdersProps) => {
                             {product.productName}
                           </p>
                           <p className="text-muted-foreground text-xs font-medium">
-                            {product.productVariantName} x {product.quantity}
+                            {product.productVariantName} — Tamanho:{" "}
+                            {product.sizeName} x {product.quantity}
                           </p>
                         </div>
                       </div>

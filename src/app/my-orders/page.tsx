@@ -25,6 +25,9 @@ const MyOrdersPage = async () => {
           productVariant: {
             with: { product: true },
           },
+          productVariantSize: {
+            with: { size: true },
+          },
         },
       },
     },
@@ -44,8 +47,10 @@ const MyOrdersPage = async () => {
             items: order.items.map((item) => ({
               id: item.id,
               imageUrl: item.productVariant?.imageUrl ?? "",
-              productName: item.productVariant?.product.name ?? "Produto removido",
+              productName:
+                item.productVariant?.product.name ?? "Produto removido",
               productVariantName: item.productVariant?.name ?? "",
+              sizeName: item.productVariantSize?.size.name ?? "—",
               priceInCents: item.productVariant?.priceInCents ?? 0,
               quantity: item.quantity,
             })),
