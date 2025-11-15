@@ -45,12 +45,15 @@ const AddToCartButton = ({
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
     onError: (error: any) => {
-      if (error.message === "NO_SIZE_SELECTED") {
-        alert("Selecione um tamanho antes de adicionar!");
-      } else {
-        console.error(error);
-      }
-    },
+  if (error.message === "NO_SIZE_SELECTED") {
+    alert("Selecione um tamanho antes de adicionar!");
+  } else if (error.message === "OUT_OF_STOCK") {
+    alert("Quantidade indisponível no estoque!");
+  } else {
+    console.error(error);
+  }
+},
+
   });
 
   const handleAddToCart = () => {

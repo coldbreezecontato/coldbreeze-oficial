@@ -62,7 +62,7 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
         />
 
         <div className="md:flex md:flex-col md:justify-center md:space-y-6">
-          {/* Seleção de variantes */}
+          {/* Variantes */}
           <div className="px-5">
             <VariantSelector
               selectedVariantSlug={productVariant.slug}
@@ -88,8 +88,11 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
             <SizeSelector sizes={productVariant.sizes} />
           </div>
 
-          {/* Ações (quantidade + botão) */}
-          <ProductActions productVariantId={productVariant.id} />
+          {/* Ações */}
+          <ProductActions
+            productVariantId={productVariant.id}
+            maxStock={productVariant.product.stock} // 👈 AGORA ESTÁ CORRETO
+          />
 
           {/* Descrição */}
           <div className="mt-3 px-5">

@@ -58,7 +58,7 @@ export default function AdminDashboard({
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState(categories[0]?.id || "");
   const [description, setDescription] = useState("Cold Breeze");
-
+  const [stock, setStock] = useState(0);
   const [variants, setVariants] = useState<Variant[]>([
     { color: "", priceInCents: "", imageUrl: "", sizes: [] },
   ]);
@@ -127,6 +127,8 @@ export default function AdminDashboard({
     formData.append("categoryId", categoryId);
     formData.append("description", description);
     formData.append("variants", JSON.stringify(variants));
+    formData.append("stock", String(stock));
+
 
     const res = await createProduct(formData);
 
@@ -218,6 +220,14 @@ export default function AdminDashboard({
           className="text-blue-300"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+        />
+
+        <Input
+          type="number"
+          placeholder="Estoque total"
+          className="text-blue-300"
+          value={stock}
+          onChange={(e) => setStock(Number(e.target.value))}
         />
 
         {/* ---------------- VARIANTES + TAMANHOS ---------------- */}
