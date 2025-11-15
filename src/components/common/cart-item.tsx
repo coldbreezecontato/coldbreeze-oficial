@@ -5,51 +5,64 @@ import Image from "next/image";
 import { toast } from "sonner";
 
 import { formatCentsToBRL } from "@/helpers/money";
-import { useDecreaseCartProduct } from "@/hooks/mutations/use-decrease-cart-product";
-import { useIncreaseCartProduct } from "@/hooks/mutations/use-increase-cart-product";
-import { useRemoveProductFromCart } from "@/hooks/mutations/use-remove-product-from-cart";
 
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
+
+// 🔥 MUTATIONS NOVAS COM SIZE
+import { useRemoveProductFromCart } from "@/hooks/mutations/use-remove-product-from-cart";
+import { useIncreaseCartProduct } from "@/hooks/mutations/use-increase-cart-product";
+import { useDecreaseCartProduct } from "@/hooks/mutations/use-decrease-cart-product";
 
 interface CartItemProps {
   id: string;
   productName: string;
+
   productVariantId: string;
   productVariantName: string;
   productVariantImageUrl: string;
   productVariantPriceInCents: number;
+
+  productVariantSizeId: string | null;
+  sizeName: string | null;
+
   quantity: number;
 }
 
 const CartItem = ({
   id,
   productName,
+
   productVariantId,
   productVariantName,
   productVariantImageUrl,
   productVariantPriceInCents,
+
+  productVariantSizeId,
+  sizeName,
+
   quantity,
 }: CartItemProps) => {
-  const removeProductFromCartMutation = useRemoveProductFromCart(id);
-  const decreaseCartProductQuantityMutation = useDecreaseCartProduct(id);
-  const increaseCartProductQuantityMutation = useIncreaseCartProduct(productVariantId);
+  // Mutations atualizadas (cada item é único por variant + size)
+  const removeMutation = useRemoveProductFromCart(id);
+  const decreaseMutation = useDecreaseCartProduct(id);
+  const increaseMutation = useIncreaseCartProduct(id); // agora passa o ID do item, não o variantId
 
-  const handleDeleteClick = () => {
-    removeProductFromCartMutation.mutate(undefined, {
+  const handleRemove = () => {
+    removeMutation.mutate(undefined, {
       onSuccess: () => toast.success("Produto removido do carrinho."),
       onError: () => toast.error("Erro ao remover produto."),
     });
   };
 
-  const handleDecreaseQuantityClick = () => {
-    decreaseCartProductQuantityMutation.mutate(undefined, {
-      onSuccess: () => toast.success("Quantidade diminuída."),
+  const handleDecrease = () => {
+    decreaseMutation.mutate(undefined, {
+      onSuccess: () => {},
     });
   };
 
-  const handleIncreaseQuantityClick = () => {
-    increaseCartProductQuantityMutation.mutate(undefined, {
-      onSuccess: () => toast.success("Quantidade aumentada."),
+  const handleIncrease = () => {
+    increaseMutation.mutate(undefined, {
+      onSuccess: () => {},
     });
   };
 
@@ -62,25 +75,31 @@ const CartItem = ({
         p-4 transition hover:border-cyan-400/30 hover:shadow-[0_0_12px_rgba(0,255,255,0.15)]
       "
     >
-      {/* 🔹 Imagem + infos */}
+      {/* 🔹 Imagem + informações */}
       <div className="flex items-center gap-4">
-        <div className="relative flex-shrink-0">
-          <Image
-            src={productVariantImageUrl}
-            alt={productVariantName}
-            width={80}
-            height={80}
-            className="rounded-lg object-cover border border-white/10"
-          />
-        </div>
+        <Image
+          src={productVariantImageUrl}
+          alt={productVariantName}
+          width={80}
+          height={80}
+          className="rounded-lg object-cover border border-white/10"
+        />
 
         <div className="flex flex-col justify-between">
           <p className="text-sm sm:text-base font-semibold text-white">
             {productName}
           </p>
-          <p className="text-xs sm:text-sm text-gray-400">{productVariantName}</p>
 
-          {/* 🔹 Contador responsivo */}
+          <p className="text-xs text-gray-400">{productVariantName}</p>
+
+          {/* 🔹 Mostrar tamanho */}
+          {sizeName && (
+            <p className="text-xs text-cyan-300 font-semibold mt-1">
+              Tamanho: {sizeName}
+            </p>
+          )}
+
+          {/* 🔹 Contador */}
           <div
             className="
               mt-2 flex items-center justify-between
@@ -92,16 +111,20 @@ const CartItem = ({
               variant="ghost"
               size="icon"
               className="h-5 w-5 text-gray-300 hover:text-cyan-300"
-              onClick={handleDecreaseQuantityClick}
+              onClick={handleDecrease}
             >
               <MinusIcon className="w-4 h-4" />
             </Button>
-            <p className="text-xs sm:text-sm font-medium text-white">{quantity}</p>
+
+            <p className="text-xs sm:text-sm font-medium text-white">
+              {quantity}
+            </p>
+
             <Button
               variant="ghost"
               size="icon"
               className="h-5 w-5 text-gray-300 hover:text-cyan-300"
-              onClick={handleIncreaseQuantityClick}
+              onClick={handleIncrease}
             >
               <PlusIcon className="w-4 h-4" />
             </Button>
@@ -109,11 +132,11 @@ const CartItem = ({
         </div>
       </div>
 
-      {/* 🔹 Preço + Remover */}
+      {/* 🔹 Preço + remover */}
       <div
         className="
           flex items-center justify-between sm:flex-col sm:items-end sm:justify-center
-          gap-2 sm:gap-3 mt-1 sm:mt-0
+          gap-2 sm:gap-3
         "
       >
         <Button
@@ -123,7 +146,7 @@ const CartItem = ({
             h-8 w-8 text-gray-400 hover:text-red-500
             hover:bg-red-500/10 rounded-full transition
           "
-          onClick={handleDeleteClick}
+          onClick={handleRemove}
         >
           <TrashIcon className="w-4 h-4" />
         </Button>

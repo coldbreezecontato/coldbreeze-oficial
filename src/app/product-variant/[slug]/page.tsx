@@ -6,11 +6,15 @@ import Footer from "@/components/common/footer";
 import { Header } from "@/components/common/header";
 import ProductList from "@/components/common/product-list";
 import { db } from "@/db";
-import { productTable, productVariantTable } from "@/db/schema";
+import {
+  productTable,
+  productVariantTable,
+} from "@/db/schema";
 import { formatCentsToBRL } from "@/helpers/money";
 
 import ProductActions from "./components/product-actions";
 import VariantSelector from "./components/variant-selector";
+import SizeSelector from "./components/size-selector";
 
 interface ProductVariantPageProps {
   params: Promise<{ slug: string }>;
@@ -18,6 +22,7 @@ interface ProductVariantPageProps {
 
 const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
   const { slug } = await params;
+
   const productVariant = await db.query.productVariantTable.findFirst({
     where: eq(productVariantTable.slug, slug),
     with: {
@@ -26,23 +31,31 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
           variants: true,
         },
       },
+      sizes: {
+        with: {
+          size: true,
+        },
+      },
     },
   });
-  if (!productVariant) {
-    return notFound();
-  }
+
+  if (!productVariant) return notFound();
+
   const likelyProducts = await db.query.productTable.findMany({
     where: eq(productTable.categoryId, productVariant.product.categoryId),
     with: {
       variants: true,
     },
   });
+
   return (
     <>
       <Header />
-      <div className="mt-3"></div>
+      <div className="mt-3" />
 
       <div className="flex flex-col space-y-6 md:flex-row md:space-y-0 mb-5">
+
+        {/* Imagem */}
         <Image
           src={productVariant.imageUrl}
           alt={productVariant.name}
@@ -52,7 +65,9 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
           className="h-auto w-full object-cover md:h-[500px] md:w-1/2 md:object-contain"
         />
 
-        <div className=" md:flex md:flex-col md:justify-center md:space-y-6">
+        <div className="md:flex md:flex-col md:justify-center md:space-y-6">
+
+          {/* Seleção de variantes */}
           <div className="px-5">
             <VariantSelector
               selectedVariantSlug={productVariant.slug}
@@ -60,8 +75,8 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
             />
           </div>
 
+          {/* Texto */}
           <div className="px-5 mt-2">
-            {/* DESCRIÇÃO */}
             <h2 className="text-lg font-semibold">
               {productVariant.product.name}
             </h2>
@@ -73,18 +88,22 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
             </h3>
           </div>
 
+          {/* Seleção de tamanhos */}
+          <div className="px-5">
+            <SizeSelector sizes={productVariant.sizes} />
+          </div>
+
+          {/* Ações (quantidade + botão) */}
           <ProductActions productVariantId={productVariant.id} />
 
+          {/* Descrição */}
           <div className="px-5 mt-3">
-            <p className="text-shadow-amber-600">
-              {productVariant.product.description}
-            </p>
+            <p>{productVariant.product.description}</p>
           </div>
         </div>
       </div>
 
       <ProductList title="Talvez você goste" products={likelyProducts} />
-
       <Footer />
     </>
   );

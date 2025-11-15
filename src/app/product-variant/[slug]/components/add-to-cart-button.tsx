@@ -15,7 +15,10 @@ interface AddToCartButtonProps {
   quantity: number;
 }
 
-const AddToCartButton = ({ productVariantId, quantity }: AddToCartButtonProps) => {
+const AddToCartButton = ({
+  productVariantId,
+  quantity,
+}: AddToCartButtonProps) => {
   const { data: session } = authClient.useSession();
   const queryClient = useQueryClient();
 
@@ -23,16 +26,30 @@ const AddToCartButton = ({ productVariantId, quantity }: AddToCartButtonProps) =
 
   const { mutate, isPending } = useMutation({
     mutationKey: ["addProductToCart", productVariantId],
-    mutationFn: async () =>
-      addProductToCart({
+    mutationFn: async () => {
+      const sizeId = (
+        document.getElementById("selected-size") as HTMLInputElement
+      )?.value;
+
+      if (!sizeId) {
+        throw new Error("NO_SIZE_SELECTED");
+      }
+
+      return addProductToCart({
         productVariantId,
+        productVariantSizeId: sizeId,
         quantity,
-      }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
-    onError: (error) => {
-      console.error(error);
+    onError: (error: any) => {
+      if (error.message === "NO_SIZE_SELECTED") {
+        alert("Selecione um tamanho antes de adicionar!");
+      } else {
+        console.error(error);
+      }
     },
   });
 
@@ -41,6 +58,7 @@ const AddToCartButton = ({ productVariantId, quantity }: AddToCartButtonProps) =
       setIsLoginDialogOpen(true);
       return;
     }
+
     mutate();
   };
 
@@ -59,7 +77,6 @@ const AddToCartButton = ({ productVariantId, quantity }: AddToCartButtonProps) =
 
       <Dialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen}>
         <DialogContent className="w-[90%] max-w-xs text-center bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] border border-[#0a84ff]/20 rounded-2xl shadow-xl p-6 flex flex-col gap-4 items-center justify-center">
-          {/* Adiciona título apenas para acessibilidade */}
           <DialogTitle className="sr-only">Login necessário</DialogTitle>
 
           <div className="flex justify-center gap-4">

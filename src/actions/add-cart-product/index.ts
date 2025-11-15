@@ -1,59 +1,100 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { headers } from "next/headers";
 
 import { db } from "@/db";
-import { cartItemTable, cartTable } from "@/db/schema";
+import {
+  cartItemTable,
+  cartTable,
+  productVariantTable,
+  productVariantSizeTable,
+} from "@/db/schema";
 import { auth } from "@/lib/auth";
 
-import { AddProductToCartSchema, addProductToCartSchema } from "./schema";
+import {
+  AddProductToCartSchema,
+  addProductToCartSchema,
+} from "./schema";
 
 export const addProductToCart = async (data: AddProductToCartSchema) => {
+  // validação com Zod
   addProductToCartSchema.parse(data);
+
   const session = await auth.api.getSession({
     headers: await headers(),
   });
+
   if (!session?.user) {
     throw new Error("Unauthorized");
   }
-  const productVariant = await db.query.productVariantTable.findFirst({
-    where: (productVariant, { eq }) =>
-      eq(productVariant.id, data.productVariantId),
+
+  // conferir se a variante existe
+  const variant = await db.query.productVariantTable.findFirst({
+    where: (variant, { eq }) => eq(variant.id, data.productVariantId),
   });
-  if (!productVariant) {
+
+  if (!variant) {
     throw new Error("Product variant not found");
   }
-  const cart = await db.query.cartTable.findFirst({
+
+  // conferir se o tamanho é válido e pertence à variante
+  const variantSize = await db.query.productVariantSizeTable.findFirst({
+    where: and(
+      eq(productVariantSizeTable.id, data.productVariantSizeId),
+      eq(productVariantSizeTable.productVariantId, data.productVariantId)
+    ),
+  });
+
+  if (!variantSize) {
+    throw new Error("INVALID_SIZE");
+  }
+
+  // buscar carrinho do usuário
+  let cart = await db.query.cartTable.findFirst({
     where: (cart, { eq }) => eq(cart.userId, session.user.id),
   });
-  let cartId = cart?.id;
-  if (!cartId) {
+
+  // criar carrinho se não existir
+  if (!cart) {
     const [newCart] = await db
       .insert(cartTable)
       .values({
         userId: session.user.id,
       })
       .returning();
-    cartId = newCart.id;
+
+    cart = newCart;
   }
-  const cartItem = await db.query.cartItemTable.findFirst({
-    where: (cartItem, { eq }) =>
-      eq(cartItem.cartId, cartId) &&
-      eq(cartItem.productVariantId, data.productVariantId),
+
+  // verificar se item COM MESMA VARIANTE + MESMO TAMANHO já existe
+  const existingItem = await db.query.cartItemTable.findFirst({
+    where: and(
+      eq(cartItemTable.cartId, cart.id),
+      eq(cartItemTable.productVariantId, data.productVariantId),
+      eq(cartItemTable.productVariantSizeId, data.productVariantSizeId)
+    ),
   });
-  if (cartItem) {
+
+  // se existir → só aumenta a quantidade
+  if (existingItem) {
     await db
       .update(cartItemTable)
       .set({
-        quantity: cartItem.quantity + data.quantity,
+        quantity: existingItem.quantity + data.quantity,
       })
-      .where(eq(cartItemTable.id, cartItem.id));
-    return;
+      .where(eq(cartItemTable.id, existingItem.id));
+
+    return { ok: true };
   }
+
+  // caso não exista, cria um novo item no carrinho
   await db.insert(cartItemTable).values({
-    cartId,
+    cartId: cart.id,
     productVariantId: data.productVariantId,
+    productVariantSizeId: data.productVariantSizeId,
     quantity: data.quantity,
   });
+
+  return { ok: true };
 };

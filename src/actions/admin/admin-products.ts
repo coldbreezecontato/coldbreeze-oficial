@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
 import { db } from "@/db";
-import { productTable, productVariantTable } from "@/db/schema";
+import {
+  productTable,
+  productVariantTable,
+  productVariantSizeTable,
+} from "@/db/schema";
 
 type ActionResult =
   | { ok: true; message: string }
@@ -26,14 +30,21 @@ export async function createProduct(formData: FormData): Promise<ActionResult> {
     const description = (formData.get("description") || "").toString().trim();
     const variantsJSON = (formData.get("variants") || "[]").toString();
 
-    if (!name || !categoryId)
+    if (!name || !categoryId) {
       return { ok: false, message: "Campos obrigatórios ausentes." };
+    }
 
-    const variants = JSON.parse(variantsJSON);
+    const variants = JSON.parse(variantsJSON) as {
+      color: string;
+      priceInCents: string;
+      imageUrl: string;
+      sizes?: { sizeId: string; stock: number }[];
+    }[];
 
     const productId = crypto.randomUUID();
     const slug = generateSlug(name);
 
+    // 🔹 Cria o produto
     await db.insert(productTable).values({
       id: productId,
       name,
@@ -42,9 +53,12 @@ export async function createProduct(formData: FormData): Promise<ActionResult> {
       description: description || "Cold Breeze",
     });
 
+    // 🔹 Cria cada variante + tamanhos da variante
     for (const variant of variants) {
+      const variantId = crypto.randomUUID();
+
       await db.insert(productVariantTable).values({
-        id: crypto.randomUUID(),
+        id: variantId,
         productId,
         name: variant.color,
         color: variant.color,
@@ -52,6 +66,23 @@ export async function createProduct(formData: FormData): Promise<ActionResult> {
         priceInCents: Number(variant.priceInCents) || 0,
         slug: generateSlug(`${name}-${variant.color}`),
       });
+
+      if (Array.isArray(variant.sizes) && variant.sizes.length > 0) {
+        for (const size of variant.sizes) {
+          if (!size.sizeId) continue;
+
+          const stockNumber = Number(size.stock);
+          if (!Number.isFinite(stockNumber) || stockNumber <= 0) continue;
+
+          await db.insert(productVariantSizeTable).values({
+            id: crypto.randomUUID(),
+            productVariantId: variantId,
+            sizeId: size.sizeId,
+            stock: stockNumber,
+            createdAt: new Date(),
+          });
+        }
+      }
     }
 
     revalidatePath("/admin");
@@ -64,13 +95,17 @@ export async function createProduct(formData: FormData): Promise<ActionResult> {
 
 export async function deleteProduct(productId: string): Promise<ActionResult> {
   if (!productId) return { ok: false, message: "ID inválido." };
+
   try {
     await db.transaction(async (tx) => {
+      // Apaga variantes (product_variant_size tem CASCADE no schema)
       await tx
         .delete(productVariantTable)
         .where(eq(productVariantTable.productId, productId));
+
       await tx.delete(productTable).where(eq(productTable.id, productId));
     });
+
     revalidatePath("/admin");
     return { ok: true, message: "Produto removido com sucesso." };
   } catch (err: any) {

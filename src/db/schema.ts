@@ -9,6 +9,10 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+/* ============================================================
+   USER / AUTH
+============================================================ */
+
 export const userTable = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -18,21 +22,12 @@ export const userTable = pgTable("user", {
     .notNull(),
   image: text("image"),
   createdAt: timestamp("created_at")
-    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .$defaultFn(() => new Date())
     .notNull(),
   updatedAt: timestamp("updated_at")
-    .$defaultFn(() => /* @__PURE__ */ new Date())
+    .$defaultFn(() => new Date())
     .notNull(),
 });
-
-export const userRelations = relations(userTable, ({ many, one }) => ({
-  shippingAddresses: many(shippingAddressTable),
-  cart: one(cartTable, {
-    fields: [userTable.id],
-    references: [cartTable.userId],
-  }),
-  orders: many(orderTable),
-}));
 
 export const sessionTable = pgTable("session", {
   id: text("id").primaryKey(),
@@ -70,13 +65,13 @@ export const verificationTable = pgTable("verification", {
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").$defaultFn(
-    () => /* @__PURE__ */ new Date(),
-  ),
-  updatedAt: timestamp("updated_at").$defaultFn(
-    () => /* @__PURE__ */ new Date(),
-  ),
+  createdAt: timestamp("created_at").$defaultFn(() => new Date()),
+  updatedAt: timestamp("updated_at").$defaultFn(() => new Date()),
 });
+
+/* ============================================================
+   CATEGORY
+============================================================ */
 
 export const categoryTable = pgTable("category", {
   id: uuid().primaryKey().defaultRandom(),
@@ -85,9 +80,9 @@ export const categoryTable = pgTable("category", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const categoryRelations = relations(categoryTable, ({ many }) => ({
-  products: many(productTable),
-}));
+/* ============================================================
+   PRODUCT
+============================================================ */
 
 export const productTable = pgTable("product", {
   id: uuid().primaryKey().defaultRandom(),
@@ -100,13 +95,9 @@ export const productTable = pgTable("product", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const productRelations = relations(productTable, ({ one, many }) => ({
-  category: one(categoryTable, {
-    fields: [productTable.categoryId],
-    references: [categoryTable.id],
-  }),
-  variants: many(productVariantTable),
-}));
+/* ============================================================
+   VARIANT
+============================================================ */
 
 export const productVariantTable = pgTable("product_variant", {
   id: uuid().primaryKey().defaultRandom(),
@@ -121,17 +112,41 @@ export const productVariantTable = pgTable("product_variant", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const productVariantRelations = relations(
-  productVariantTable,
-  ({ one, many }) => ({
-    product: one(productTable, {
-      fields: [productVariantTable.productId],
-      references: [productTable.id],
-    }),
-    cartItems: many(cartItemTable),
-    orderItems: many(orderItemTable),
-  }),
-);
+/* ============================================================
+   SIZE (NOVO)
+============================================================ */
+
+export const productSizeTable = pgTable("product_size", {
+  id: uuid().primaryKey().defaultRandom(),
+  name: text("name").notNull(),       // ex: P, M, G
+  slug: text("slug").notNull().unique(), 
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+/* ============================================================
+   VARIANT SIZE (NOVO)
+============================================================ */
+
+export const productVariantSizeTable = pgTable("product_variant_size", {
+  id: uuid().primaryKey().defaultRandom(),
+
+  productVariantId: uuid("product_variant_id")
+    .notNull()
+    .references(() => productVariantTable.id, { onDelete: "cascade" }),
+
+  sizeId: uuid("size_id")
+    .notNull()
+    .references(() => productSizeTable.id, { onDelete: "restrict" }),
+
+  stock: integer("stock").notNull().default(0),
+
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+/* ============================================================
+   SHIPPING ADDRESS
+============================================================ */
 
 export const shippingAddressTable = pgTable("shipping_address", {
   id: uuid().primaryKey().defaultRandom(),
@@ -153,20 +168,9 @@ export const shippingAddressTable = pgTable("shipping_address", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const shippingAddressRelations = relations(
-  shippingAddressTable,
-  ({ one, many }) => ({
-    user: one(userTable, {
-      fields: [shippingAddressTable.userId],
-      references: [userTable.id],
-    }),
-    cart: one(cartTable, {
-      fields: [shippingAddressTable.id],
-      references: [cartTable.shippingAddressId],
-    }),
-    orders: many(orderTable),
-  }),
-);
+/* ============================================================
+   CART
+============================================================ */
 
 export const cartTable = pgTable("cart", {
   id: uuid().primaryKey().defaultRandom(),
@@ -180,40 +184,30 @@ export const cartTable = pgTable("cart", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const cartRelations = relations(cartTable, ({ one, many }) => ({
-  user: one(userTable, {
-    fields: [cartTable.userId],
-    references: [userTable.id],
-  }),
-  shippingAddress: one(shippingAddressTable, {
-    fields: [cartTable.shippingAddressId],
-    references: [shippingAddressTable.id],
-  }),
-  items: many(cartItemTable),
-}));
-
 export const cartItemTable = pgTable("cart_item", {
   id: uuid().primaryKey().defaultRandom(),
+
   cartId: uuid("cart_id")
     .notNull()
     .references(() => cartTable.id, { onDelete: "cascade" }),
+
   productVariantId: uuid("product_variant_id")
     .notNull()
     .references(() => productVariantTable.id, { onDelete: "cascade" }),
+
+  /* NOVO → tamanho selecionado */
+  productVariantSizeId: uuid("product_variant_size_id").references(
+    () => productVariantSizeTable.id,
+    { onDelete: "set null" },
+  ),
+
   quantity: integer("quantity").notNull().default(1),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const cartItemRelations = relations(cartItemTable, ({ one }) => ({
-  cart: one(cartTable, {
-    fields: [cartItemTable.cartId],
-    references: [cartTable.id],
-  }),
-  productVariant: one(productVariantTable, {
-    fields: [cartItemTable.productVariantId],
-    references: [productVariantTable.id],
-  }),
-}));
+/* ============================================================
+   ORDER
+============================================================ */
 
 export const orderStatus = pgEnum("order_status", [
   "pending",
@@ -249,20 +243,155 @@ export const orderTable = pgTable("order", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// 🔹 Cupom de Desconto
+/* ============================================================
+   ORDER ITEM
+============================================================ */
+
+export const orderItemTable = pgTable("order_item", {
+  id: uuid().primaryKey().defaultRandom(),
+
+  orderId: uuid("order_id")
+    .notNull()
+    .references(() => orderTable.id, { onDelete: "cascade" }),
+
+  productVariantId: uuid("product_variant_id").references(
+    () => productVariantTable.id,
+    { onDelete: "set null" },
+  ),
+
+  /* NOVO → tamanho do item */
+  productVariantSizeId: uuid("product_variant_size_id").references(
+    () => productVariantSizeTable.id,
+    { onDelete: "set null" },
+  ),
+
+  quantity: integer("quantity").notNull(),
+  priceInCents: integer("price_in_cents").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+/* ============================================================
+   COUPON
+============================================================ */
+
 export const discountTypeEnum = pgEnum("discount_type", ["PERCENT", "FIXED"]);
 
 export const couponTable = pgTable("coupon", {
   id: uuid().primaryKey().defaultRandom(),
-  code: text("code").notNull().unique(), // Ex: PRIMEIRACOMPRA
-  description: text("description"), // Opcional
-  discountType: discountTypeEnum("discount_type").notNull(), // PERCENT ou FIXED
-  discountValue: integer("discount_value").notNull(), // em %, ou em centavos
+  code: text("code").notNull().unique(),
+  description: text("description"),
+  discountType: discountTypeEnum("discount_type").notNull(),
+  discountValue: integer("discount_value").notNull(),
   isActive: boolean("is_active").notNull().default(true),
-  expiresAt: timestamp("expires_at").notNull(), // Data limite de uso
+  expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+/* ============================================================
+   RELATIONS
+============================================================ */
+
+export const userRelations = relations(userTable, ({ many, one }) => ({
+  shippingAddresses: many(shippingAddressTable),
+  cart: one(cartTable, {
+    fields: [userTable.id],
+    references: [cartTable.userId],
+  }),
+  orders: many(orderTable),
+}));
+
+export const categoryRelations = relations(categoryTable, ({ many }) => ({
+  products: many(productTable),
+}));
+
+export const productRelations = relations(productTable, ({ one, many }) => ({
+  category: one(categoryTable, {
+    fields: [productTable.categoryId],
+    references: [categoryTable.id],
+  }),
+  variants: many(productVariantTable),
+}));
+
+export const productVariantRelations = relations(
+  productVariantTable,
+  ({ one, many }) => ({
+    product: one(productTable, {
+      fields: [productVariantTable.productId],
+      references: [productTable.id],
+    }),
+
+    cartItems: many(cartItemTable),
+    orderItems: many(orderItemTable),
+
+    /* NOVO → tamanhos disponíveis da variante */
+    sizes: many(productVariantSizeTable),
+  }),
+);
+
+export const productSizeRelations = relations(
+  productSizeTable,
+  ({ many }) => ({
+    variantSizes: many(productVariantSizeTable),
+  }),
+);
+
+export const productVariantSizeRelations = relations(
+  productVariantSizeTable,
+  ({ one }) => ({
+    variant: one(productVariantTable, {
+      fields: [productVariantSizeTable.productVariantId],
+      references: [productVariantTable.id],
+    }),
+    size: one(productSizeTable, {
+      fields: [productVariantSizeTable.sizeId],
+      references: [productSizeTable.id],
+    }),
+  }),
+);
+
+export const shippingAddressRelations = relations(
+  shippingAddressTable,
+  ({ one, many }) => ({
+    user: one(userTable, {
+      fields: [shippingAddressTable.userId],
+      references: [userTable.id],
+    }),
+    cart: one(cartTable, {
+      fields: [shippingAddressTable.id],
+      references: [cartTable.shippingAddressId],
+    }),
+    orders: many(orderTable),
+  }),
+);
+
+export const cartRelations = relations(cartTable, ({ one, many }) => ({
+  user: one(userTable, {
+    fields: [cartTable.userId],
+    references: [userTable.id],
+  }),
+  shippingAddress: one(shippingAddressTable, {
+    fields: [cartTable.shippingAddressId],
+    references: [shippingAddressTable.id],
+  }),
+  items: many(cartItemTable),
+}));
+
+export const cartItemRelations = relations(cartItemTable, ({ one }) => ({
+  cart: one(cartTable, {
+    fields: [cartItemTable.cartId],
+    references: [cartTable.id],
+  }),
+  productVariant: one(productVariantTable, {
+    fields: [cartItemTable.productVariantId],
+    references: [productVariantTable.id],
+  }),
+
+  productVariantSize: one(productVariantSizeTable, {
+    fields: [cartItemTable.productVariantSizeId],
+    references: [productVariantSizeTable.id],
+  }),
+}));
 
 export const orderRelations = relations(orderTable, ({ one, many }) => ({
   user: one(userTable, {
@@ -280,19 +409,6 @@ export const orderRelations = relations(orderTable, ({ one, many }) => ({
   items: many(orderItemTable),
 }));
 
-export const orderItemTable = pgTable("order_item", {
-  id: uuid().primaryKey().defaultRandom(),
-  orderId: uuid("order_id")
-    .notNull()
-    .references(() => orderTable.id, { onDelete: "cascade" }),
-  productVariantId: uuid("product_variant_id")
-    .references(() => productVariantTable.id, { onDelete: "set null" }),
-
-  quantity: integer("quantity").notNull(),
-  priceInCents: integer("price_in_cents").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
-
 export const orderItemRelations = relations(orderItemTable, ({ one }) => ({
   order: one(orderTable, {
     fields: [orderItemTable.orderId],
@@ -301,5 +417,9 @@ export const orderItemRelations = relations(orderItemTable, ({ one }) => ({
   productVariant: one(productVariantTable, {
     fields: [orderItemTable.productVariantId],
     references: [productVariantTable.id],
+  }),
+  productVariantSize: one(productVariantSizeTable, {
+    fields: [orderItemTable.productVariantSizeId],
+    references: [productVariantSizeTable.id],
   }),
 }));

@@ -2,8 +2,9 @@
 
 import { headers } from "next/headers";
 import { db } from "@/db";
-import { cartTable } from "@/db/schema";
+import { cartTable, productVariantSizeTable, productVariantTable, productSizeTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { eq } from "drizzle-orm";
 
 export const getCart = async () => {
   try {
@@ -11,9 +12,8 @@ export const getCart = async () => {
       headers: await headers(),
     });
 
-    // 🔹 Caso o usuário não esteja autenticado
+    // 🔹 Usuário não autenticado → Carrinho vazio
     if (!session?.user) {
-      console.warn("⚠️ Nenhum usuário autenticado — retornando carrinho vazio.");
       return {
         id: null,
         userId: null,
@@ -23,7 +23,6 @@ export const getCart = async () => {
       };
     }
 
-    // 🔹 Busca o carrinho existente
     const cart = await db.query.cartTable.findFirst({
       where: (cart, { eq }) => eq(cart.userId, session.user.id),
       with: {
@@ -35,18 +34,23 @@ export const getCart = async () => {
                 product: true,
               },
             },
+
+            // 🔥 AQUI puxa tamanho (productVariantSize)
+            productVariantSize: {
+              with: {
+                size: true,
+              },
+            },
           },
         },
       },
     });
 
-    // 🔹 Se não existir, cria um novo carrinho para o usuário
+    // 🔹 Se não existir carrinho → cria
     if (!cart) {
       const [newCart] = await db
         .insert(cartTable)
-        .values({
-          userId: session.user.id,
-        })
+        .values({ userId: session.user.id })
         .returning();
 
       return {
@@ -57,19 +61,18 @@ export const getCart = async () => {
       };
     }
 
-    // 🔹 Retorna o carrinho com total calculado
+    // 🔹 Calcula total
+    const totalPriceInCents = cart.items.reduce((acc, item) => {
+      return acc + item.productVariant.priceInCents * item.quantity;
+    }, 0);
+
     return {
       ...cart,
-      totalPriceInCents: cart.items.reduce(
-        (acc, item) =>
-          acc + item.productVariant.priceInCents * item.quantity,
-        0,
-      ),
+      totalPriceInCents,
     };
   } catch (err) {
     console.error("❌ Erro ao obter o carrinho:", err);
 
-    // 🔹 Fallback total: evita quebrar SSR
     return {
       id: null,
       userId: null,

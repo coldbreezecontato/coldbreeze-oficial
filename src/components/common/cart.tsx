@@ -20,7 +20,8 @@ import CartItem from "./cart-item";
 
 export const Cart = () => {
   const { data: cart } = useCart();
-  const totalItems = cart?.items?.reduce((acc, item) => acc + item.quantity, 0) ?? 0;
+  const totalItems =
+    cart?.items?.reduce((acc, item) => acc + item.quantity, 0) ?? 0;
 
   return (
     <Sheet>
@@ -75,6 +76,8 @@ export const Cart = () => {
                     productVariantImageUrl={item.productVariant.imageUrl}
                     productVariantPriceInCents={item.productVariant.priceInCents}
                     quantity={item.quantity}
+                    productVariantSizeId={item.productVariantSize?.id ?? null}
+                    sizeName={item.productVariantSize?.size?.name ?? null}
                   />
                 ))}
               </div>
