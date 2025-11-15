@@ -6,10 +6,7 @@ import Footer from "@/components/common/footer";
 import { Header } from "@/components/common/header";
 import ProductList from "@/components/common/product-list";
 import { db } from "@/db";
-import {
-  productTable,
-  productVariantTable,
-} from "@/db/schema";
+import { productTable, productVariantTable } from "@/db/schema";
 import { formatCentsToBRL } from "@/helpers/money";
 
 import ProductActions from "./components/product-actions";
@@ -42,7 +39,7 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
   if (!productVariant) return notFound();
 
   const likelyProducts = await db.query.productTable.findMany({
-    where: eq(productTable.categoryId, productVariant.product.categoryId),
+    where: eq(productTable.categoryId, productVariant.product.categoryId!),
     with: {
       variants: true,
     },
@@ -53,8 +50,7 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
       <Header />
       <div className="mt-3" />
 
-      <div className="flex flex-col space-y-6 md:flex-row md:space-y-0 mb-5">
-
+      <div className="mb-5 flex flex-col space-y-6 md:flex-row md:space-y-0">
         {/* Imagem */}
         <Image
           src={productVariant.imageUrl}
@@ -66,7 +62,6 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
         />
 
         <div className="md:flex md:flex-col md:justify-center md:space-y-6">
-
           {/* Seleção de variantes */}
           <div className="px-5">
             <VariantSelector
@@ -76,14 +71,14 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
           </div>
 
           {/* Texto */}
-          <div className="px-5 mt-2">
+          <div className="mt-2 px-5">
             <h2 className="text-lg font-semibold">
               {productVariant.product.name}
             </h2>
-            <h3 className="text-muted-foreground text-sm mt-2">
+            <h3 className="text-muted-foreground mt-2 text-sm">
               {productVariant.name}
             </h3>
-            <h3 className="text-lg font-semibold mt-2">
+            <h3 className="mt-2 text-lg font-semibold">
               {formatCentsToBRL(productVariant.priceInCents)}
             </h3>
           </div>
@@ -97,7 +92,7 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
           <ProductActions productVariantId={productVariant.id} />
 
           {/* Descrição */}
-          <div className="px-5 mt-3">
+          <div className="mt-3 px-5">
             <p>{productVariant.product.description}</p>
           </div>
         </div>
