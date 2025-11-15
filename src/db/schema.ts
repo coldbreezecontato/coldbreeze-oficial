@@ -206,6 +206,24 @@ export const cartItemTable = pgTable("cart_item", {
 });
 
 /* ============================================================
+   COUPON
+============================================================ */
+
+export const discountTypeEnum = pgEnum("discount_type", ["PERCENT", "FIXED"]);
+
+export const couponTable = pgTable("coupon", {
+  id: uuid().primaryKey().defaultRandom(),
+  code: text("code").notNull().unique(),
+  description: text("description"),
+  discountType: discountTypeEnum("discount_type").notNull(),
+  discountValue: integer("discount_value").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+/* ============================================================
    ORDER
 ============================================================ */
 
@@ -268,24 +286,6 @@ export const orderItemTable = pgTable("order_item", {
   quantity: integer("quantity").notNull(),
   priceInCents: integer("price_in_cents").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
-
-/* ============================================================
-   COUPON
-============================================================ */
-
-export const discountTypeEnum = pgEnum("discount_type", ["PERCENT", "FIXED"]);
-
-export const couponTable = pgTable("coupon", {
-  id: uuid().primaryKey().defaultRandom(),
-  code: text("code").notNull().unique(),
-  description: text("description"),
-  discountType: discountTypeEnum("discount_type").notNull(),
-  discountValue: integer("discount_value").notNull(),
-  isActive: boolean("is_active").notNull().default(true),
-  expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 /* ============================================================
