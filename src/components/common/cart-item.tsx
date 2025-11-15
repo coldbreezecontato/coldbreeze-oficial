@@ -42,10 +42,13 @@ const CartItem = ({
 
   quantity,
 }: CartItemProps) => {
-  // Mutations atualizadas (cada item é único por variant + size)
   const removeMutation = useRemoveProductFromCart(id);
   const decreaseMutation = useDecreaseCartProduct(id);
-  const increaseMutation = useIncreaseCartProduct(id); // agora passa o ID do item, não o variantId
+
+  const increaseMutation = useIncreaseCartProduct(
+    productVariantId,
+    productVariantSizeId!,
+  );
 
   const handleRemove = () => {
     removeMutation.mutate(undefined, {
@@ -67,14 +70,7 @@ const CartItem = ({
   };
 
   return (
-    <div
-      className="
-        flex flex-col sm:flex-row sm:items-center sm:justify-between
-        gap-4 sm:gap-6 rounded-xl border border-white/10
-        bg-gradient-to-b from-[#0a0f1f]/40 to-[#0b1220]/60
-        p-4 transition hover:border-cyan-400/30 hover:shadow-[0_0_12px_rgba(0,255,255,0.15)]
-      "
-    >
+    <div className="flex flex-col gap-4 rounded-xl border border-white/10 bg-gradient-to-b from-[#0a0f1f]/40 to-[#0b1220]/60 p-4 transition hover:border-cyan-400/30 hover:shadow-[0_0_12px_rgba(0,255,255,0.15)] sm:flex-row sm:items-center sm:justify-between sm:gap-6">
       {/* 🔹 Imagem + informações */}
       <div className="flex items-center gap-4">
         <Image
@@ -82,11 +78,11 @@ const CartItem = ({
           alt={productVariantName}
           width={80}
           height={80}
-          className="rounded-lg object-cover border border-white/10"
+          className="rounded-lg border border-white/10 object-cover"
         />
 
         <div className="flex flex-col justify-between">
-          <p className="text-sm sm:text-base font-semibold text-white">
+          <p className="text-sm font-semibold text-white sm:text-base">
             {productName}
           </p>
 
@@ -94,29 +90,23 @@ const CartItem = ({
 
           {/* 🔹 Mostrar tamanho */}
           {sizeName && (
-            <p className="text-xs text-cyan-300 font-semibold mt-1">
+            <p className="mt-1 text-xs font-semibold text-cyan-300">
               Tamanho: {sizeName}
             </p>
           )}
 
           {/* 🔹 Contador */}
-          <div
-            className="
-              mt-2 flex items-center justify-between
-              w-[90px] sm:w-[100px]
-              rounded-lg border border-white/10 bg-[#0a0f1f]/50 p-1
-            "
-          >
+          <div className="mt-2 flex w-[90px] items-center justify-between rounded-lg border border-white/10 bg-[#0a0f1f]/50 p-1 sm:w-[100px]">
             <Button
               variant="ghost"
               size="icon"
               className="h-5 w-5 text-gray-300 hover:text-cyan-300"
               onClick={handleDecrease}
             >
-              <MinusIcon className="w-4 h-4" />
+              <MinusIcon className="h-4 w-4" />
             </Button>
 
-            <p className="text-xs sm:text-sm font-medium text-white">
+            <p className="text-xs font-medium text-white sm:text-sm">
               {quantity}
             </p>
 
@@ -126,32 +116,24 @@ const CartItem = ({
               className="h-5 w-5 text-gray-300 hover:text-cyan-300"
               onClick={handleIncrease}
             >
-              <PlusIcon className="w-4 h-4" />
+              <PlusIcon className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </div>
 
       {/* 🔹 Preço + remover */}
-      <div
-        className="
-          flex items-center justify-between sm:flex-col sm:items-end sm:justify-center
-          gap-2 sm:gap-3
-        "
-      >
+      <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end sm:justify-center sm:gap-3">
         <Button
           variant="ghost"
           size="icon"
-          className="
-            h-8 w-8 text-gray-400 hover:text-red-500
-            hover:bg-red-500/10 rounded-full transition
-          "
+          className="h-8 w-8 rounded-full text-gray-400 transition hover:bg-red-500/10 hover:text-red-500"
           onClick={handleRemove}
         >
-          <TrashIcon className="w-4 h-4" />
+          <TrashIcon className="h-4 w-4" />
         </Button>
 
-        <p className="text-sm sm:text-base font-bold text-cyan-300">
+        <p className="text-sm font-bold text-cyan-300 sm:text-base">
           {formatCentsToBRL(productVariantPriceInCents)}
         </p>
       </div>
