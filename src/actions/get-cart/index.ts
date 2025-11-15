@@ -2,7 +2,12 @@
 
 import { headers } from "next/headers";
 import { db } from "@/db";
-import { cartTable, productVariantSizeTable, productVariantTable, productSizeTable } from "@/db/schema";
+import {
+  cartTable,
+  productVariantSizeTable,
+  productVariantTable,
+  productSizeTable,
+} from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 
@@ -12,7 +17,7 @@ export const getCart = async () => {
       headers: await headers(),
     });
 
-    // 🔹 Usuário não autenticado → Carrinho vazio
+    // 🔹 Usuário NÃO autenticado → carrinho vazio
     if (!session?.user) {
       return {
         id: null,
@@ -23,6 +28,7 @@ export const getCart = async () => {
       };
     }
 
+    // 🔹 Buscar carrinho com relações
     const cart = await db.query.cartTable.findFirst({
       where: (cart, { eq }) => eq(cart.userId, session.user.id),
       with: {
@@ -31,11 +37,15 @@ export const getCart = async () => {
           with: {
             productVariant: {
               with: {
-                product: true,
+                product: true, // 🔥 AQUI pega o stock do produto!
+                sizes: {
+                  with: {
+                    size: true,
+                  },
+                },
               },
             },
 
-            // 🔥 AQUI puxa tamanho (productVariantSize)
             productVariantSize: {
               with: {
                 size: true,
@@ -46,7 +56,7 @@ export const getCart = async () => {
       },
     });
 
-    // 🔹 Se não existir carrinho → cria
+    // 🔹 Se não existir carrinho → cria um vazio
     if (!cart) {
       const [newCart] = await db
         .insert(cartTable)
@@ -61,7 +71,7 @@ export const getCart = async () => {
       };
     }
 
-    // 🔹 Calcula total
+    // 🔹 Calcula subtotal
     const totalPriceInCents = cart.items.reduce((acc, item) => {
       return acc + item.productVariant.priceInCents * item.quantity;
     }, 0);
