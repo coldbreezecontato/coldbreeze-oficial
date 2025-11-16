@@ -2,13 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { PatternFormat } from "react-number-format";
 import { toast } from "sonner";
 import z from "zod";
 
-import { getCart } from "@/actions/get-cart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -22,10 +21,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 import { shippingAddressTable } from "@/db/schema";
+
 import { useCreateShippingAddress } from "@/hooks/mutations/use-create-shipping-address";
 import { useUpdateCartShippingAddress } from "@/hooks/mutations/use-update-cart-shipping-address";
-import { useCart } from "@/hooks/queries/use-cart";
+import { useDeleteShippingAddress } from "@/hooks/mutations/use-delete-shipping-address";
 import { useUserAddresses } from "@/hooks/queries/use-user-addresses";
 
 import { formatAddress } from "../../helpers/address";
@@ -59,8 +60,11 @@ const Addresses = ({
   const [selectedAddress, setSelectedAddress] = useState<string | null>(
     defaultShippingAddressId || null,
   );
+
   const createShippingAddressMutation = useCreateShippingAddress();
   const updateCartShippingAddressMutation = useUpdateCartShippingAddress();
+  const deleteShippingAddressMutation = useDeleteShippingAddress();
+
   const { data: addresses, isLoading } = useUserAddresses({
     initialData: shippingAddresses,
   });
@@ -127,7 +131,7 @@ const Addresses = ({
           </div>
         ) : (
           <RadioGroup
-            value={selectedAddress}
+            value={selectedAddress ?? ""}
             onValueChange={setSelectedAddress}
           >
             {addresses?.length === 0 && (
@@ -144,22 +148,43 @@ const Addresses = ({
                 className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] text-white"
               >
                 <CardContent>
-                  <div className="flex items-start space-x-2">
-                    <RadioGroupItem value={address.id} id={address.id} />
-                    <div className="flex-1">
-                      <Label htmlFor={address.id} className="cursor-pointer">
-                        <div>
-                          <p className="text-sm">{formatAddress(address)}</p>
-                        </div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-2">
+                      <RadioGroupItem value={address.id} id={address.id} />
+                      <Label
+                        htmlFor={address.id}
+                        className="flex-1 cursor-pointer"
+                      >
+                        <p className="text-sm">{formatAddress(address)}</p>
                       </Label>
                     </div>
+
+                    {/* Botão Excluir */}
+                    <button
+                      onClick={async () => {
+                        try {
+                          await deleteShippingAddressMutation.mutateAsync(
+                            address.id,
+                          );
+                          toast.success("Endereço excluído com sucesso!");
+
+                          if (selectedAddress === address.id) {
+                            setSelectedAddress(null);
+                          }
+                        } catch {
+                          toast.error("Erro ao excluir endereço");
+                        }
+                      }}
+                      className="text-xs text-red-400 hover:text-red-300"
+                    >
+                      Excluir
+                    </button>
                   </div>
                 </CardContent>
               </Card>
             ))}
 
-            <Card className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] 
-        border-b border-[#0a84ff]/20 text-white">
+            <Card className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] text-white">
               <CardContent>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="add_new" id="add_new" />
@@ -191,38 +216,63 @@ const Addresses = ({
               className="mt-4 space-y-4"
             >
               <div className="grid gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Digite seu email" {...field} className="border-blue-950"/>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="fullName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nome completo</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Digite seu nome completo"
-                          {...field}
-                          className="border-blue-950"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
+                {/* Campos do formulário */}
+                {[
+                  {
+                    name: "email",
+                    label: "Email",
+                    placeholder: "Digite seu email",
+                  },
+                  {
+                    name: "fullName",
+                    label: "Nome completo",
+                    placeholder: "Digite seu nome completo",
+                  },
+                  {
+                    name: "address",
+                    label: "Endereço",
+                    placeholder: "Digite seu endereço",
+                  },
+                  {
+                    name: "number",
+                    label: "Número",
+                    placeholder: "Digite o número",
+                  },
+                  {
+                    name: "neighborhood",
+                    label: "Bairro",
+                    placeholder: "Digite o bairro",
+                  },
+                  {
+                    name: "city",
+                    label: "Cidade",
+                    placeholder: "Digite a cidade",
+                  },
+                  {
+                    name: "state",
+                    label: "Estado",
+                    placeholder: "Digite o estado",
+                  },
+                ].map((field) => (
+                  <FormField
+                    key={field.name}
+                    control={form.control}
+                    name={field.name as any}
+                    render={({ field: f }) => (
+                      <FormItem>
+                        <FormLabel>{field.label}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder={field.placeholder}
+                            {...f}
+                            className="border-blue-950"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
                 <FormField
                   control={form.control}
                   name="cpf"
@@ -285,34 +335,6 @@ const Addresses = ({
 
                 <FormField
                   control={form.control}
-                  name="address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Endereço</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Digite seu endereço" {...field} className="border-blue-950"/>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Número</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Digite o número" {...field} className="border-blue-950"/>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
                   name="complement"
                   render={({ field }) => (
                     <FormItem>
@@ -323,48 +345,6 @@ const Addresses = ({
                           {...field}
                           className="border-blue-950"
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="neighborhood"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bairro</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Digite o bairro" {...field} className="border-blue-950"/>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cidade</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Digite a cidade" {...field} className="border-blue-950"/>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="state"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Estado</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Digite o estado" {...field} className="border-blue-950"/>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
