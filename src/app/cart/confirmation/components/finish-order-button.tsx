@@ -11,38 +11,40 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useFinishOrder } from "@/hooks/mutations/use-finish-order";
 
-const FinishOrderButton = () => {
+export default function FinishOrderButton({ onCouponApplied }: { onCouponApplied: (c: any) => void }) {
   const finishOrderMutation = useFinishOrder();
 
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [isApplying, setIsApplying] = useState(false);
 
-  // 🔹 Aplica cupom
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return toast.error("Digite um código de cupom");
 
     try {
       setIsApplying(true);
+
       const coupon = await applyCoupon(couponCode);
       setAppliedCoupon(coupon);
+      onCouponApplied(coupon);
+
       toast.success(`Cupom ${coupon.code} aplicado com sucesso!`);
     } catch (err: any) {
       toast.error(err.message || "Cupom inválido");
       setAppliedCoupon(null);
+      onCouponApplied(null);
     } finally {
       setIsApplying(false);
     }
   };
 
-  // 🔹 Remove cupom
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
     setCouponCode("");
+    onCouponApplied(null);
     toast("Cupom removido.");
   };
 
-  // 🔹 Finaliza pedido
   const handleFinishOrder = async () => {
     if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
       throw new Error("Stripe publishable key is not set");
@@ -64,7 +66,6 @@ const FinishOrderButton = () => {
 
   return (
     <div className="space-y-3">
-      {/* 🔹 Campo de cupom */}
       {!appliedCoupon ? (
         <div className="flex gap-2">
           <Input
@@ -95,7 +96,6 @@ const FinishOrderButton = () => {
         </div>
       )}
 
-      {/* 🔹 Botão principal */}
       <Button
         className="w-full rounded-full cursor-pointer"
         size="lg"
@@ -107,6 +107,4 @@ const FinishOrderButton = () => {
       </Button>
     </div>
   );
-};
-
-export default FinishOrderButton;
+}

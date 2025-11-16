@@ -7,6 +7,7 @@ import { formatCentsToBRL } from "@/helpers/money";
 
 interface CartSummaryProps {
   subtotalInCents: number;
+  discountInCents?: number;
   totalInCents: number;
   products: Array<{
     id: string;
@@ -20,6 +21,7 @@ interface CartSummaryProps {
 
 const CartSummary = ({
   subtotalInCents,
+  discountInCents = 0,
   totalInCents,
   products,
 }: CartSummaryProps) => {
@@ -29,6 +31,7 @@ const CartSummary = ({
       <CardHeader>
         <CardTitle>Resumo</CardTitle>
       </CardHeader>
+
       <CardContent className="space-y-3">
         <div className="flex justify-between">
           <p className="text-sm">Subtotal</p>
@@ -36,10 +39,19 @@ const CartSummary = ({
             {formatCentsToBRL(subtotalInCents)}
           </p>
         </div>
+
+        {discountInCents > 0 && (
+          <div className="flex justify-between text-green-400">
+            <p className="text-sm">Desconto</p>
+            <p className="text-sm font-medium">- {formatCentsToBRL(discountInCents)}</p>
+          </div>
+        )}
+
         <div className="flex justify-between">
           <p className="text-sm">Frete</p>
           <p className="text-muted-foreground text-sm font-medium">GRÁTIS</p>
         </div>
+
         <div className="flex justify-between">
           <p className="text-sm">Total</p>
           <p className="text-muted-foreground text-sm font-medium">
@@ -68,11 +80,10 @@ const CartSummary = ({
                 </p>
               </div>
             </div>
-            <div className="flex flex-col items-end justify-center gap-2">
-              <p className="text-sm font-bold">
-                {formatCentsToBRL(product.priceInCents)}
-              </p>
-            </div>
+
+            <p className="text-sm font-bold">
+              {formatCentsToBRL(product.priceInCents)}
+            </p>
           </div>
         ))}
       </CardContent>
