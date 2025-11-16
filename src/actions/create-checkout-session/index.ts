@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import Stripe from "stripe";
 
 import { db } from "@/db";
-import { couponTable, orderItemTable, orderTable } from "@/db/schema";
+import { orderItemTable, orderTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import {
   CreateCheckoutSessionSchema,
@@ -13,55 +13,98 @@ import {
 } from "./schema";
 
 export const createCheckoutSession = async (
-  data: CreateCheckoutSessionSchema,
+  data: CreateCheckoutSessionSchema
 ) => {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error("Stripe secret key is not set");
   }
 
-  // 🔐 Autenticação
   const session = await auth.api.getSession({
     headers: await headers(),
   });
+
   if (!session?.user) throw new Error("Unauthorized");
 
-  // ✅ Validação
-  const { orderId, couponCode } = createCheckoutSessionSchema.parse(data);
+  const { orderId } = createCheckoutSessionSchema.parse(data);
 
-  // 🔎 Pedido
+  // 🧾 Pedido
   const order = await db.query.orderTable.findFirst({
     where: eq(orderTable.id, orderId),
   });
+
   if (!order) throw new Error("Order not found");
   if (order.userId !== session.user.id) throw new Error("Unauthorized");
 
-  // 🧾 Itens do pedido
-  const orderItems = await db.query.orderItemTable.findMany({
+  // 🧾 Itens do pedido com produto, variante e tamanho
+  const items = await db.query.orderItemTable.findMany({
     where: eq(orderItemTable.orderId, orderId),
     with: {
       productVariant: {
-        with: { product: true },
+        with: {
+          product: true,
+        },
+      },
+      productVariantSize: {
+        with: {
+          size: true,
+        },
       },
     },
   });
 
-  // ⚙️ Stripe
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-06-20" as any,
-});
+    apiVersion: "2024-06-20" as any,
+  });
 
-  // 🏷️ Cupom
-  let activeCoupon: typeof couponTable.$inferSelect | null = null;
-  if (couponCode) {
-    const coupon = await db.query.couponTable.findFirst({
-      where: eq(couponTable.code, couponCode),
+  // 💰 Subtotal baseado nos itens (sem desconto)
+  const subtotalInCents = items.reduce(
+    (acc, item) => acc + item.priceInCents * item.quantity,
+    0
+  );
+
+  // 🧮 Desconto aplicado no pedido (já calculado no finishOrder)
+  const discountInCents = Math.max(
+    0,
+    subtotalInCents - order.totalPriceInCents
+  );
+
+  // 🎟️ Cupom do Stripe equivalente ao desconto aplicado
+  let stripeCouponId: string | undefined;
+
+  if (discountInCents > 0) {
+    const stripeCoupon = await stripe.coupons.create({
+      amount_off: discountInCents,
+      currency: "brl",
+      duration: "once",
     });
-    if (coupon && coupon.isActive && coupon.expiresAt > new Date()) {
-      activeCoupon = coupon;
-    }
+
+    stripeCouponId = stripeCoupon.id;
   }
 
-  // 💳 Cria sessão
+  // 🧊 Line items com imagem, variante, tamanho e quantidade
+  const line_items = items.map((item) => {
+    const variant = item.productVariant;
+    const product = variant?.product;
+    const size = item.productVariantSize?.size;
+
+    return {
+      price_data: {
+        currency: "brl",
+        unit_amount: item.priceInCents, // preço unitário original (sem desconto)
+        product_data: {
+          name: `${product?.name ?? "Produto"} — ${variant?.name ?? "Variante"}`,
+          description: `Tamanho: ${size?.name ?? "Único"}`,
+          images:
+            variant?.imageUrl && variant.imageUrl.length > 5
+              ? [variant.imageUrl]
+              : [],
+        },
+      },
+      quantity: item.quantity,
+    };
+  });
+
+  // 💳 Sessão do Stripe
   const checkoutSession = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     mode: "payment",
@@ -69,44 +112,11 @@ export const createCheckoutSession = async (
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/cancel`,
     metadata: {
       orderId,
-      couponCode: couponCode || "",
     },
-    line_items: orderItems
-      .filter((item) => !!item.productVariant) // 🔒 segurança extra
-      .map((item, index) => {
-        const variant = item.productVariant!; // ✅ garante que não é null
-        const product = variant.product!;
-
-        let priceInCents = item.priceInCents;
-
-        if (activeCoupon) {
-          if (activeCoupon.discountType === "PERCENT") {
-            priceInCents = Math.round(
-              item.priceInCents * (1 - activeCoupon.discountValue / 100),
-            );
-          } else if (activeCoupon.discountType === "FIXED" && index === 0) {
-            priceInCents = Math.max(
-              0,
-              item.priceInCents - activeCoupon.discountValue,
-            );
-          }
-        }
-
-        return {
-          price_data: {
-            currency: "brl",
-            product_data: {
-              name: `${product.name} - ${variant.name}`,
-              description: product.description,
-              images: [variant.imageUrl],
-            },
-            unit_amount: priceInCents,
-          },
-          quantity: item.quantity,
-        };
-      }),
+    line_items,
+    // 🔥 aplica o desconto global para bater com order.totalPriceInCents
+    discounts: stripeCouponId ? [{ coupon: stripeCouponId }] : undefined,
   });
 
-  // ✅ Retorno
   return { id: checkoutSession.id };
 };

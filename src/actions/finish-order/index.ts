@@ -1,7 +1,6 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 import { db } from "@/db";
@@ -10,19 +9,20 @@ import {
   cartTable,
   orderItemTable,
   orderTable,
-  productVariantSizeTable,
+  couponTable,
 } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
-export const finishOrder = async () => {
+export const finishOrder = async (couponCode?: string) => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
+
   if (!session) {
     throw new Error("Unauthorized");
   }
 
-  // 🔥 AGORA BUSCANDO O TAMANHO TAMBÉM
+  // 🛒 Carrega carrinho completo
   const cart = await db.query.cartTable.findFirst({
     where: eq(cartTable.userId, session.user.id),
     with: {
@@ -30,9 +30,7 @@ export const finishOrder = async () => {
       items: {
         with: {
           productVariant: true,
-          productVariantSize: {
-            with: { size: true },
-          },
+          productVariantSize: { with: { size: true } },
         },
       },
     },
@@ -45,37 +43,58 @@ export const finishOrder = async () => {
     throw new Error("Shipping address not found");
   }
 
-  const totalPriceInCents = cart.items.reduce(
+  // ✅ Agora o TS entende que nunca é null
+  const shippingAddress = cart.shippingAddress;
+
+  // Subtotal sem cupom
+  let totalPriceInCents = cart.items.reduce(
     (acc, item) =>
       acc + item.productVariant.priceInCents * item.quantity,
-    0,
+    0
   );
+
+  // 🎫 Aplicar cupom no backend
+  if (couponCode) {
+    const coupon = await db.query.couponTable.findFirst({
+      where: eq(couponTable.code, couponCode),
+    });
+
+    if (coupon && coupon.isActive && coupon.expiresAt > new Date()) {
+      if (coupon.discountType === "PERCENT") {
+        totalPriceInCents = Math.round(
+          totalPriceInCents * (1 - coupon.discountValue / 100)
+        );
+      } else if (coupon.discountType === "FIXED") {
+        totalPriceInCents = Math.max(
+          0,
+          totalPriceInCents - coupon.discountValue
+        );
+      }
+    }
+  }
 
   let orderId: string | undefined;
 
+  // 🧾 Criar o pedido
   await db.transaction(async (tx) => {
-    if (!cart.shippingAddress) {
-      throw new Error("Shipping address not found");
-    }
-
     const [order] = await tx
       .insert(orderTable)
       .values({
-        email: cart.shippingAddress.email,
-        zipCode: cart.shippingAddress.zipCode,
-        country: cart.shippingAddress.country,
-        phone: cart.shippingAddress.phone,
-        cpfOrCnpj: cart.shippingAddress.cpfOrCnpj,
-        city: cart.shippingAddress.city,
-        complement: cart.shippingAddress.complement ?? null,
-        neighborhood: cart.shippingAddress.neighborhood,
-        number: cart.shippingAddress.number,
-        recipientName: cart.shippingAddress.recipientName,
-        state: cart.shippingAddress.state,
-        street: cart.shippingAddress.street,
+        email: shippingAddress.email,
+        zipCode: shippingAddress.zipCode,
+        country: shippingAddress.country,
+        phone: shippingAddress.phone,
+        cpfOrCnpj: shippingAddress.cpfOrCnpj,
+        city: shippingAddress.city,
+        complement: shippingAddress.complement ?? null,
+        neighborhood: shippingAddress.neighborhood,
+        number: shippingAddress.number,
+        recipientName: shippingAddress.recipientName,
+        state: shippingAddress.state,
+        street: shippingAddress.street,
         userId: session.user.id,
-        totalPriceInCents,
-        shippingAddressId: cart.shippingAddress!.id,
+        totalPriceInCents, // 🔥 já com desconto aplicado
+        shippingAddressId: shippingAddress.id,
       })
       .returning();
 
@@ -85,19 +104,18 @@ export const finishOrder = async () => {
 
     orderId = order.id;
 
-    // 🔥 SALVANDO O TAMANHO DO PRODUTO NO PEDIDO
     const orderItemsPayload: Array<typeof orderItemTable.$inferInsert> =
       cart.items.map((item) => ({
         orderId: order.id,
         productVariantId: item.productVariant.id,
-        productVariantSizeId: item.productVariantSizeId, // << AQUI ESTAVA FALTANDO!
+        productVariantSizeId: item.productVariantSizeId,
         quantity: item.quantity,
         priceInCents: item.productVariant.priceInCents,
       }));
 
     await tx.insert(orderItemTable).values(orderItemsPayload);
 
-    // limpa carrinho
+    // 🧹 limpa carrinho
     await tx.delete(cartItemTable).where(eq(cartItemTable.cartId, cart.id));
     await tx.delete(cartTable).where(eq(cartTable.id, cart.id));
   });

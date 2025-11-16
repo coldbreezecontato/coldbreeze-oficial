@@ -11,7 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useFinishOrder } from "@/hooks/mutations/use-finish-order";
 
-export default function FinishOrderButton({ onCouponApplied }: { onCouponApplied: (c: any) => void }) {
+type FinishOrderButtonProps = {
+  onCouponApplied: (coupon: any | null) => void;
+};
+
+export default function FinishOrderButton({
+  onCouponApplied,
+}: FinishOrderButtonProps) {
   const finishOrderMutation = useFinishOrder();
 
   const [couponCode, setCouponCode] = useState("");
@@ -19,7 +25,9 @@ export default function FinishOrderButton({ onCouponApplied }: { onCouponApplied
   const [isApplying, setIsApplying] = useState(false);
 
   const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) return toast.error("Digite um código de cupom");
+    if (!couponCode.trim()) {
+      return toast.error("Digite um código de cupom");
+    }
 
     try {
       setIsApplying(true);
@@ -46,19 +54,22 @@ export default function FinishOrderButton({ onCouponApplied }: { onCouponApplied
   };
 
   const handleFinishOrder = async () => {
-    if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+    const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    if (!stripeKey) {
       throw new Error("Stripe publishable key is not set");
     }
 
     const couponToSend = appliedCoupon?.code || undefined;
-    const { orderId } = await finishOrderMutation.mutateAsync(couponToSend);
+
+    const { orderId } =
+      await finishOrderMutation.mutateAsync(couponToSend);
 
     const checkoutSession = await createCheckoutSession({
       orderId,
       couponCode: couponToSend,
     });
 
-    const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY);
+    const stripe = await loadStripe(stripeKey);
     if (!stripe) throw new Error("Failed to load Stripe");
 
     await stripe.redirectToCheckout({ sessionId: checkoutSession.id });
@@ -75,7 +86,11 @@ export default function FinishOrderButton({ onCouponApplied }: { onCouponApplied
             className="bg-white/5 text-white"
           />
           <Button onClick={handleApplyCoupon} disabled={isApplying}>
-            {isApplying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Aplicar"}
+            {isApplying ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Aplicar"
+            )}
           </Button>
         </div>
       ) : (
@@ -102,7 +117,9 @@ export default function FinishOrderButton({ onCouponApplied }: { onCouponApplied
         onClick={handleFinishOrder}
         disabled={finishOrderMutation.isPending}
       >
-        {finishOrderMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+        {finishOrderMutation.isPending && (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        )}
         Finalizar compra
       </Button>
     </div>
