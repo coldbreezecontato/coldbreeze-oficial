@@ -17,6 +17,7 @@ import { orderTable } from "@/db/schema";
 import { formatCentsToBRL } from "@/helpers/money";
 import { cancelOrder } from "@/actions/orders/cancel-order";
 import { deleteOrder } from "@/actions/orders/delete-order";
+import { retryPayment } from "@/actions/orders/retry-payment"; // <-- IMPORTANTE
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 
@@ -51,7 +52,7 @@ const Orders = ({ orders }: OrdersProps) => {
 
       if (res.ok) {
         toast.success(res.message);
-        router.refresh(); // <--- ATUALIZA A PÁGINA AUTOMATICAMENTE
+        router.refresh();
       } else {
         toast.error(res.message);
       }
@@ -64,7 +65,19 @@ const Orders = ({ orders }: OrdersProps) => {
 
       if (res.ok) {
         toast.success(res.message);
-        router.refresh(); // <--- ATUALIZA DE NOVO
+        router.refresh();
+      } else {
+        toast.error(res.message);
+      }
+    });
+  };
+
+  const handleRetryPayment = (orderId: string) => {
+    startTransition(async () => {
+      const res = await retryPayment(orderId, userId);
+
+      if (res.ok && res.url) {
+        window.location.href = res.url; // <-- Vai para o Stripe Checkout
       } else {
         toast.error(res.message);
       }
@@ -86,7 +99,6 @@ const Orders = ({ orders }: OrdersProps) => {
                     {order.status === "pending" && (
                       <Badge variant="outline">Pagamento pendente</Badge>
                     )}
-                    {order.status === "paid" && <Badge>Pago</Badge>}
                     {order.status === "in_production" && (
                       <Badge className="bg-yellow-600">Em produção</Badge>
                     )}
@@ -150,7 +162,20 @@ const Orders = ({ orders }: OrdersProps) => {
                   </div>
 
                   {/* BOTÕES DO USUÁRIO */}
-                  <div className="flex justify-between mt-3">
+                  <div className="flex justify-between mt-3 gap-3">
+
+                    {/* Retry Payment */}
+                    {order.status === "pending" && (
+                      <button
+                        disabled={isPending}
+                        onClick={() => handleRetryPayment(order.id)}
+                        className="rounded-md bg-[#0a84ff] px-3 py-1 text-sm font-semibold hover:bg-[#0066d6] transition-all shadow-md hover:shadow-blue-500/50"
+                      >
+                        {isPending ? "Redirecionando..." : "Pagar agora"}
+                      </button>
+                    )}
+
+                    {/* Cancelar pendente */}
                     {order.status === "pending" && (
                       <button
                         disabled={isPending}
@@ -161,6 +186,7 @@ const Orders = ({ orders }: OrdersProps) => {
                       </button>
                     )}
 
+                    {/* Deletar */}
                     {(order.status === "canceled" ||
                       order.status === "delivered") && (
                       <button

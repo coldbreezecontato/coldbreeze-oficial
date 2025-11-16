@@ -231,7 +231,6 @@ export const couponTable = pgTable("coupon", {
 
 export const orderStatus = pgEnum("order_status", [
   "pending",        // aguardando pagamento
-  "paid",           // pago
   "in_production",  // separação e embalagem
   "on_the_way",     // transportadora / enviando
   "delivered",      // entregue

@@ -71,7 +71,6 @@ export default function AdminOrdersDashboard({ orders }: { orders: any[] }) {
                     className="rounded-md bg-white/10 px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="pending" className="bg-black">Pendente</option>
-                    <option value="paid" className="bg-black">Pago</option>
                     <option value="in_production" className="bg-black">Em produção</option>
                     <option value="on_the_way" className="bg-black">A caminho</option>
                     <option value="delivered" className="bg-black">Entregue</option>
@@ -91,7 +90,6 @@ export default function AdminOrdersDashboard({ orders }: { orders: any[] }) {
                   {order.status === "pending" && (
                     <Badge variant="outline">Pendente</Badge>
                   )}
-                  {order.status === "paid" && <Badge>Pago</Badge>}
                   {order.status === "in_production" && (
                     <Badge className="bg-yellow-600">Em produção</Badge>
                   )}
