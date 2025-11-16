@@ -10,15 +10,23 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import {
+  Bike,
   LogInIcon,
   LogOutIcon,
   MapPinIcon,
   MenuIcon,
+  PackageOpenIcon,
   PackageSearchIcon,
   ShoppingBagIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+
+// 🔐 E-mails que têm permissão para ver a área administrativa
+const ADMIN_EMAILS = [
+  "renang@coldbreeze.com",
+  "renaan.profissional@gmail.com",
+];
 
 const MenuLink = () => {
   const { data: session } = authClient.useSession();
@@ -96,20 +104,41 @@ const MenuLink = () => {
                       Meus Pedidos
                     </Link>
                   </Button>
-
-                  {/*  
-                  <Button
-                    asChild
-                    variant="ghost"
-                    className="w-full justify-start gap-3 text-sm md:text-base hover:bg-cyan-400 hover:text-black transition rounded-lg py-2"
-                  >
-                    <Link href="/my-addresses">
-                      <MapPinIcon className="h-4 w-4 md:h-5 md:w-5" />
-                      Meus Endereços
-                    </Link>
-                  </Button>
-                   */}
                 </div>
+
+                {/* 🔥 Área Admin (apenas para e-mails permitidos) */}
+                {session?.user?.email &&
+                  ADMIN_EMAILS.includes(session.user.email) && (
+                    <div className="mt-8 border-t border-white/10 pt-4">
+                      <p className="mb-3 text-xs font-semibold uppercase text-cyan-400">
+                        Área Administrativa
+                      </p>
+
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          asChild
+                          variant="ghost"
+                          className="w-full justify-start gap-3 rounded-lg py-2 text-sm hover:bg-cyan-400 hover:text-black md:text-base"
+                        >
+                          <Link href="/admin-orders">
+                            <Bike className="h-4 w-4 md:h-5 md:w-5" />
+                            Pedidos (Admin)
+                          </Link>
+                        </Button>
+
+                        <Button
+                          asChild
+                          variant="ghost"
+                          className="w-full justify-start gap-3 rounded-lg py-2 text-sm hover:bg-cyan-400 hover:text-black md:text-base"
+                        >
+                          <Link href="/admin">
+                            <PackageOpenIcon className="h-4 w-4 md:h-5 md:w-5" />
+                            Produtos (Admin)
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
               </div>
             ) : (
               /* 🔹 Usuário não autenticado */

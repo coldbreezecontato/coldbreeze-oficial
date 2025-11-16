@@ -48,7 +48,7 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
   return (
     <>
       <Header />
-      <div className="mt-3" />
+      <div className="mt-4"></div>
 
       <div className="mb-5 flex flex-col space-y-6 md:flex-row md:space-y-0">
         {/* Imagem */}

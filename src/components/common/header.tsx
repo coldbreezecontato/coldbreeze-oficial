@@ -63,7 +63,7 @@ export const Header = () => {
 
       {/* Header flutuante */}
       <header
-        className={`fixed top-[40px] left-0 w-full z-40 transition-all duration-500 ${
+        className={`fixed top-[43px] left-0 w-full z-40 transition-all duration-500 ${
           showNav ? "opacity-100 translate-y-0" : "-translate-y-full opacity-0"
         }`}
       >

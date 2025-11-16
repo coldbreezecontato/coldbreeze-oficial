@@ -28,7 +28,7 @@ const Home = async () => {
   return (
     <>
       <Header />
-      <div className="h-5 w-full bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]"></div>
+      <div className="h-3 w-full bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]"></div>
       <div className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] px-2">
         <BannerCarousel />
       </div>
