@@ -17,7 +17,7 @@ import { orderTable } from "@/db/schema";
 import { formatCentsToBRL } from "@/helpers/money";
 import { cancelOrder } from "@/actions/orders/cancel-order";
 import { deleteOrder } from "@/actions/orders/delete-order";
-import { retryPayment } from "@/actions/orders/retry-payment"; // <-- IMPORTANTE
+import { retryPayment } from "@/actions/orders/retry-payment";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 
@@ -77,7 +77,7 @@ const Orders = ({ orders }: OrdersProps) => {
       const res = await retryPayment(orderId, userId);
 
       if (res.ok && res.url) {
-        window.location.href = res.url; // <-- Vai para o Stripe Checkout
+        window.location.href = res.url;
       } else {
         toast.error(res.message);
       }
@@ -161,32 +161,62 @@ const Orders = ({ orders }: OrdersProps) => {
                     <Separator />
                   </div>
 
+                  {/* BLOCO DE EXPLICAÇÃO DO PROCESSO */}
+                  <div className="mt-2 mb-5 rounded-lg border border-white/10 bg-[#0d1529] p-4 shadow-lg">
+                    <h3 className="mb-3 text-sm font-semibold text-white">
+                      Como funciona o processo de entrega:
+                    </h3>
+
+                    <ul className="space-y-2 text-xs text-gray-300">
+                      <li>
+                        <strong className="text-white">Pendente:</strong>{" "}
+                        pagamento ainda não foi concluído.
+                      </li>
+
+                      <li>
+                        <strong className="text-white">Em produção:</strong>{" "}
+                        pagamento aprovado — estamos preparando o envio.
+                      </li>
+
+                      <li>
+                        <strong className="text-white">A caminho:</strong>{" "}
+                        o pedido saiu para entrega e está em rota até você.
+                      </li>
+
+                      <li>
+                        <strong className="text-white">Entregue:</strong>{" "}
+                        o pedido chegou ao destino.
+                      </li>
+
+                      <li>
+                        <strong className="text-white">Cancelado:</strong>{" "}
+                        o pedido foi cancelado.
+                      </li>
+                    </ul>
+                  </div>
+
                   {/* BOTÕES DO USUÁRIO */}
                   <div className="flex justify-between mt-3 gap-3">
-
-                    {/* Retry Payment */}
                     {order.status === "pending" && (
-                      <button
-                        disabled={isPending}
-                        onClick={() => handleRetryPayment(order.id)}
-                        className="rounded-md bg-[#0a84ff] px-3 py-1 text-sm font-semibold hover:bg-[#0066d6] transition-all shadow-md hover:shadow-blue-500/50"
-                      >
-                        {isPending ? "Redirecionando..." : "Pagar agora"}
-                      </button>
+                      <>
+                        <button
+                          disabled={isPending}
+                          onClick={() => handleRetryPayment(order.id)}
+                          className="rounded-md bg-[#0a84ff] px-3 py-1 text-sm font-semibold hover:bg-[#0066d6] transition-all shadow-md hover:shadow-blue-500/50"
+                        >
+                          {isPending ? "Redirecionando..." : "Pagar agora"}
+                        </button>
+
+                        <button
+                          disabled={isPending}
+                          onClick={() => handleCancel(order.id)}
+                          className="rounded-md bg-red-600 px-3 py-1 text-sm hover:bg-red-700"
+                        >
+                          Cancelar pedido
+                        </button>
+                      </>
                     )}
 
-                    {/* Cancelar pendente */}
-                    {order.status === "pending" && (
-                      <button
-                        disabled={isPending}
-                        onClick={() => handleCancel(order.id)}
-                        className="rounded-md bg-red-600 px-3 py-1 text-sm hover:bg-red-700"
-                      >
-                        Cancelar pedido
-                      </button>
-                    )}
-
-                    {/* Deletar */}
                     {(order.status === "canceled" ||
                       order.status === "delivered") && (
                       <button
