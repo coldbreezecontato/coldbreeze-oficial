@@ -17,6 +17,7 @@ const ADMIN_EMAILS = [
   // Seus e-mails externos
   "renang@coldbreeze.com",
   "renaan.profissional@gmail.com",
+  "coldbreeze.contato@gmail.com",
 ];
 
 export async function isAdmin() {

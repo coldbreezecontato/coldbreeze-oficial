@@ -24,8 +24,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 // 🔐 E-mails que têm permissão para ver a área administrativa
 const ADMIN_EMAILS = [
+  "isaabatista@coldbreeze.com.br",
+  "ceo@coldbreeze.com.br",
+  "coio@coldbreeze.com.br",
+  "valbert777@coldbreeze.com.br",
+  "lavinnya.silva@coldbreeze.com.br",
+  "sara.lopes@coldbreeze.com.br",
+  "yago@coldbreeze.com.br",
+  "fazan@coldbreeze.com.br",
+  "contato@coldbreeze.com.br",
+  "renan@coldbreeze.com.br",
+
+  // Seus e-mails externos
   "renang@coldbreeze.com",
   "renaan.profissional@gmail.com",
+  "coldbreeze.contato@gmail.com",
 ];
 
 const MenuLink = () => {
