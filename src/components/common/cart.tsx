@@ -50,7 +50,7 @@ export const Cart = () => {
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col justify-between overflow-hidden">
           {/* 🔹 Itens */}
           <ScrollArea className="/* 🔥 ativa o scroll quando ultrapassar 2 itens */ max-h-[360px] overflow-y-auto px-5 py-6">
             {cart?.items && cart.items.length > 0 ? (
@@ -85,7 +85,7 @@ export const Cart = () => {
 
           {/* 🔹 Totais */}
           {cart?.items && cart.items.length > 0 && (
-            <div className="border-t border-white/10 bg-gradient-to-t from-[#0b1220]/90 to-[#0a0f1f]/80 px-5 py-6 backdrop-blur-md">
+            <div className="border-white/10 px-5 py-6 backdrop-blur-md">
               <div className="space-y-3 text-sm text-gray-300">
                 <div className="flex items-center justify-between">
                   <p>Subtotal</p>
@@ -111,7 +111,7 @@ export const Cart = () => {
 
               <Button
                 asChild
-                className="mt-6 w-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 py-5 font-semibold text-white shadow-[0_0_20px_rgba(0,255,255,0.25)] transition-all duration-300 hover:from-cyan-300 hover:to-blue-400"
+                className="mt-6 w-full rounded-full border-1 border-white bg-gray-950 text-white hover:bg-blue-300 hover:text-black hover:border-black transition-colors shadow-[0_0_20px_rgba(0,255,255,0.25)] duration-300 hover:from-cyan-300 hover:to-blue-400"
               >
                 <Link href="/cart/identification">Finalizar Compra</Link>
               </Button>

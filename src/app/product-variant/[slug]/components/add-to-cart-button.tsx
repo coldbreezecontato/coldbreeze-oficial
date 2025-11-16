@@ -68,7 +68,7 @@ const AddToCartButton = ({
   return (
     <>
       <Button
-        className="rounded-full mt-5 cursor-pointer border-[#192344]"
+        className="rounded-full mt-5 cursor-pointer border-1 border-white bg-gray-950 text-white hover:bg-blue-300 hover:text-black hover:border-black transition-colors"
         size="lg"
         variant="outline"
         disabled={isPending}

@@ -29,7 +29,7 @@ export default function SizeSelector({ sizes }: SizeSelectorProps) {
               onClick={() => !outOfStock && setSelected(s.id)}
               className={`
                 rounded-lg px-4 py-2 border text-sm transition-all
-                ${selected === s.id ? "bg-blue-600 border-blue-400" : "bg-[#111827] border-white/10"}
+                ${selected === s.id ? "bg-blue-300 border-black" : "bg-[#111827] border-white/10"}
                 ${outOfStock ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}
               `}
             >

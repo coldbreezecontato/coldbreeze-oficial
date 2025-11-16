@@ -58,7 +58,7 @@ const ProductVariantPage = async ({ params }: ProductVariantPageProps) => {
           sizes="100vw"
           height={0}
           width={0}
-          className="h-auto w-full object-cover md:h-[500px] md:w-1/2 md:object-contain"
+          className="h-auto w-full object-cover md:h-[600px] md:w-1/2 md:object-contain"
         />
 
         <div className="md:flex md:flex-col md:justify-center md:space-y-6">
