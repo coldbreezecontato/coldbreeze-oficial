@@ -1,8 +1,23 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
-// 🔐 Defina aqui os e-mails permitidos
-const ADMIN_EMAILS = ["renang@coldbreeze.com", "renaan.profissional@gmail.com"];
+// 🔐 Lista de e-mails com permissão de administrador
+const ADMIN_EMAILS = [
+  "isaabatista@coldbreeze.com.br",
+  "ceo@coldbreeze.com.br",
+  "coio@coldbreeze.com.br",
+  "valbert777@coldbreeze.com.br",
+  "lavinnya.silva@coldbreeze.com.br",
+  "sara.lopes@coldbreeze.com.br",
+  "yago@coldbreeze.com.br",
+  "fazan@coldbreeze.com.br",
+  "contato@coldbreeze.com.br",
+  "renan@coldbreeze.com.br",
+
+  // Seus e-mails externos
+  "renang@coldbreeze.com",
+  "renaan.profissional@gmail.com",
+];
 
 export async function isAdmin() {
   const session = await auth.api.getSession({ headers: await headers() });
