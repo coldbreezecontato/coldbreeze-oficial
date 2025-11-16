@@ -143,7 +143,7 @@ const Addresses = ({
                 className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]"
               >
                 <CardContent>
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-between items-start text-white">
                     <div className="flex items-start space-x-2">
                       <RadioGroupItem value={address.id} id={address.id} />
 
@@ -182,7 +182,7 @@ const Addresses = ({
             {/* Opção de adicionar novo */}
             <Card className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]">
               <CardContent>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 text-white">
                   <RadioGroupItem value="add_new" id="add_new" />
                   <Label htmlFor="add_new">Adicionar novo endereço</Label>
                 </div>
