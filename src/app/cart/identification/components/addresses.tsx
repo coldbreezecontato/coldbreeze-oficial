@@ -30,6 +30,7 @@ import { useDeleteShippingAddress } from "@/hooks/mutations/use-delete-shipping-
 import { useUserAddresses } from "@/hooks/queries/use-user-addresses";
 
 import { formatAddress } from "../../helpers/address";
+import { ShippingPreview } from "./shipping-preview";
 
 const formSchema = z.object({
   email: z.email("E-mail inválido"),
@@ -88,8 +89,7 @@ const Addresses = ({
 
   const onSubmit = async (values: FormValues) => {
     try {
-      const newAddress =
-        await createShippingAddressMutation.mutateAsync(values);
+      const newAddress = await createShippingAddressMutation.mutateAsync(values);
       toast.success("Endereço criado com sucesso!");
       form.reset();
       setSelectedAddress(newAddress.id);
@@ -98,9 +98,8 @@ const Addresses = ({
         shippingAddressId: newAddress.id,
       });
       toast.success("Endereço vinculado ao carrinho!");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao criar endereço. Tente novamente.");
-      console.error(error);
     }
   };
 
@@ -113,9 +112,8 @@ const Addresses = ({
       });
       toast.success("Endereço selecionado para entrega!");
       router.push("/cart/confirmation");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao selecionar endereço. Tente novamente.");
-      console.error(error);
     }
   };
 
@@ -124,49 +122,41 @@ const Addresses = ({
       <CardHeader>
         <CardTitle>Identificação</CardTitle>
       </CardHeader>
+
       <CardContent>
+        {/* Lista de endereços */}
         {isLoading ? (
           <div className="py-4 text-center">
             <p>Carregando endereços...</p>
           </div>
         ) : (
-          <RadioGroup
-            value={selectedAddress ?? ""}
-            onValueChange={setSelectedAddress}
-          >
+          <RadioGroup value={selectedAddress ?? ""} onValueChange={setSelectedAddress}>
             {addresses?.length === 0 && (
-              <div className="py-4 text-center">
-                <p className="text-muted-foreground">
-                  Você ainda não possui endereços cadastrados.
-                </p>
-              </div>
+              <p className="text-center text-muted-foreground py-4">
+                Você ainda não possui endereços cadastrados.
+              </p>
             )}
 
             {addresses?.map((address) => (
               <Card
                 key={address.id}
-                className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] text-white"
+                className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]"
               >
                 <CardContent>
-                  <div className="flex items-start justify-between">
+                  <div className="flex justify-between items-start">
                     <div className="flex items-start space-x-2">
                       <RadioGroupItem value={address.id} id={address.id} />
-                      <Label
-                        htmlFor={address.id}
-                        className="flex-1 cursor-pointer"
-                      >
+
+                      <Label htmlFor={address.id} className="cursor-pointer flex-1">
                         <p className="text-sm">{formatAddress(address)}</p>
                       </Label>
                     </div>
 
-                    {/* Botão Excluir */}
                     <button
                       onClick={async () => {
                         try {
-                          await deleteShippingAddressMutation.mutateAsync(
-                            address.id,
-                          );
-                          toast.success("Endereço excluído com sucesso!");
+                          await deleteShippingAddressMutation.mutateAsync(address.id);
+                          toast.success("Endereço excluído!");
 
                           if (selectedAddress === address.id) {
                             setSelectedAddress(null);
@@ -180,11 +170,17 @@ const Addresses = ({
                       Excluir
                     </button>
                   </div>
+
+                  {/* 🔥 FRETE DO ENDEREÇO SELECIONADO */}
+                  {selectedAddress === address.id && (
+                    <ShippingPreview city={address.city} state={address.state} />
+                  )}
                 </CardContent>
               </Card>
             ))}
 
-            <Card className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] text-white">
+            {/* Opção de adicionar novo */}
+            <Card className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]">
               <CardContent>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="add_new" id="add_new" />
@@ -195,64 +191,30 @@ const Addresses = ({
           </RadioGroup>
         )}
 
+        {/* Botão "Ir para pagamento" */}
         {selectedAddress && selectedAddress !== "add_new" && (
-          <div className="mt-4">
-            <Button
-              onClick={handleGoToPayment}
-              className="w-full cursor-pointer"
-              disabled={updateCartShippingAddressMutation.isPending}
-            >
-              {updateCartShippingAddressMutation.isPending
-                ? "Processando..."
-                : "Ir para pagamento"}
-            </Button>
-          </div>
+          <Button
+            onClick={handleGoToPayment}
+            className="w-full mt-4"
+            disabled={updateCartShippingAddressMutation.isPending}
+          >
+            {updateCartShippingAddressMutation.isPending ? "Processando..." : "Ir para pagamento"}
+          </Button>
         )}
 
+        {/* Formulário de novo endereço */}
         {selectedAddress === "add_new" && (
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="mt-4 space-y-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
-                {/* Campos do formulário */}
                 {[
-                  {
-                    name: "email",
-                    label: "Email",
-                    placeholder: "Digite seu email",
-                  },
-                  {
-                    name: "fullName",
-                    label: "Nome completo",
-                    placeholder: "Digite seu nome completo",
-                  },
-                  {
-                    name: "address",
-                    label: "Endereço",
-                    placeholder: "Digite seu endereço",
-                  },
-                  {
-                    name: "number",
-                    label: "Número",
-                    placeholder: "Digite o número",
-                  },
-                  {
-                    name: "neighborhood",
-                    label: "Bairro",
-                    placeholder: "Digite o bairro",
-                  },
-                  {
-                    name: "city",
-                    label: "Cidade",
-                    placeholder: "Digite a cidade",
-                  },
-                  {
-                    name: "state",
-                    label: "Estado",
-                    placeholder: "Digite o estado",
-                  },
+                  { name: "email", label: "Email", placeholder: "Digite seu email" },
+                  { name: "fullName", label: "Nome completo", placeholder: "Seu nome" },
+                  { name: "address", label: "Endereço", placeholder: "Rua, avenida..." },
+                  { name: "number", label: "Número", placeholder: "123" },
+                  { name: "neighborhood", label: "Bairro", placeholder: "Bairro" },
+                  { name: "city", label: "Cidade", placeholder: "Cidade" },
+                  { name: "state", label: "Estado", placeholder: "SP, RJ..." },
                 ].map((field) => (
                   <FormField
                     key={field.name}
@@ -262,17 +224,14 @@ const Addresses = ({
                       <FormItem>
                         <FormLabel>{field.label}</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder={field.placeholder}
-                            {...f}
-                            className="border-blue-950"
-                          />
+                          <Input placeholder={field.placeholder} {...f} className="border-blue-950" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 ))}
+
                 <FormField
                   control={form.control}
                   name="cpf"

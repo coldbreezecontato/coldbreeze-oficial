@@ -17,37 +17,69 @@ const CheckoutCancelPage = () => {
   return (
     <>
       <Header />
-      <Dialog open={true} onOpenChange={() => {}}>
-        <DialogContent className="text-center">
-          <Image
-            src="/breeze-triste.png"
-            alt="Pagamento cancelado"
-            width={300}
-            height={300}
-            className="mx-auto"
-          />
-          <DialogTitle className="mt-4 text-2xl text-red-600">
-            Pagamento cancelado
-          </DialogTitle>
 
-          <DialogDescription className="font-medium">
-            O pagamento foi cancelado. Caso tenha ocorrido um erro, você pode
-            tentar novamente.
-          </DialogDescription>
+      <div className="min-h-[80vh] flex items-center justify-center px-5">
+        <Dialog open={true} onOpenChange={() => {}}>
+          <DialogContent
+            className="
+              text-center
+              border border-white/10
+              bg-gradient-to-b from-[#0c1324] to-[#080e1a]
+              shadow-xl shadow-black/40
+              p-10 max-w-md
+              rounded-2xl
+            "
+          >
+            {/* Mascote triste */}
+            <Image
+              src="/breeze-triste.png"
+              alt="Pagamento cancelado"
+              width={250}
+              height={250}
+              className="mx-auto drop-shadow-lg animate-fade-in"
+            />
 
-          <DialogFooter className="flex justify-center w-full">
-  <Button
-    className="w-full rounded-full text-base font-medium"
-    variant="outline"
-    size="lg"
-    asChild
-  >
-    <Link href="/">Voltar para a loja</Link>
-  </Button>
-</DialogFooter>
+            {/* Título */}
+            <DialogTitle className="mt-6 text-3xl font-semibold tracking-tight text-red-500">
+              Pagamento cancelado
+            </DialogTitle>
 
-        </DialogContent>
-      </Dialog>
+            {/* Descrição */}
+            <DialogDescription className="mt-3 text-base text-white/70 leading-relaxed">
+              O pagamento foi cancelado.  
+              Se isso foi um engano ou ocorreu algum erro, você pode tentar novamente.
+            </DialogDescription>
+
+            {/* BOTÕES EM GRID PREMIUM */}
+            <DialogFooter className="mt-8 grid grid-cols-2 gap-3 w-full">
+              <Button
+                asChild
+                className="
+                  w-full h-12 rounded-full
+                  bg-white text-[#0a0f1f]
+                  hover:bg-white/90
+                  font-medium text-base
+                "
+              >
+                <Link href="/">Voltar para a loja</Link>
+              </Button>
+
+              <Button
+                asChild
+                className="
+                  w-full h-12 rounded-full
+                  bg-[#0a84ff] text-white
+                  hover:bg-[#0a84ff]/80
+                  font-medium text-base
+                "
+              >
+                <Link href="/my-orders">Meus pedidos</Link>
+              </Button>
+            </DialogFooter>
+
+          </DialogContent>
+        </Dialog>
+      </div>
     </>
   );
 };

@@ -9,7 +9,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { orderTable } from "@/db/schema";
@@ -33,6 +32,9 @@ interface OrdersProps {
   orders: Array<{
     id: string;
     totalPriceInCents: number;
+    shippingInCents: number;
+    subtotalInCents: number;
+    discountInCents: number;
     status: (typeof orderTable.$inferSelect)["status"];
     createdAt: Date;
     items: Array<{
@@ -75,10 +77,9 @@ const statusMap = {
   },
 };
 
-// 🔥 Tipo compatível com TODAS as suas actions
 type OrderActionResponse = {
   ok: boolean;
-  message?: string | undefined;
+  message?: string;
   url?: string;
 };
 
@@ -201,7 +202,7 @@ const Orders = ({ orders }: OrdersProps) => {
                       <Separator className="bg-white/10" />
                     </div>
 
-                    {/* TIMELINE PROFISSIONAL */}
+                    {/* TIMELINE */}
                     <div className="bg-[#0d1529] border border-white/10 rounded-lg p-4 mb-4">
                       <h3 className="text-sm font-semibold mb-3 text-white flex items-center gap-2">
                         <ArrowRight className="h-4 w-4 text-cyan-400" />
@@ -276,18 +277,31 @@ const Orders = ({ orders }: OrdersProps) => {
                       )}
                     </div>
 
-                    {/* RESUMO */}
+                    {/* RESUMO FINAL */}
                     <div className="space-y-2 mt-5">
                       <div className="flex justify-between text-sm">
                         <p>Subtotal</p>
                         <p className="text-gray-300">
-                          {formatCentsToBRL(order.totalPriceInCents)}
+                          {formatCentsToBRL(order.subtotalInCents)}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between text-sm">
+                        <p>Desconto</p>
+                        <p className="text-green-400">
+                          {order.discountInCents > 0
+                            ? `- ${formatCentsToBRL(order.discountInCents)}`
+                            : "—"}
                         </p>
                       </div>
 
                       <div className="flex justify-between text-sm">
                         <p>Frete</p>
-                        <p className="text-gray-300">GRÁTIS</p>
+                        <p className="text-gray-300">
+                          {order.shippingInCents === 0
+                            ? "GRÁTIS"
+                            : formatCentsToBRL(order.shippingInCents)}
+                        </p>
                       </div>
 
                       <div className="flex justify-between text-sm font-semibold">

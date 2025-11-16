@@ -17,41 +17,46 @@ const CheckoutSuccessPage = () => {
   return (
     <>
       <Header />
-      <Dialog open={true} onOpenChange={() => {}}>
-        <DialogContent className="text-center">
-          <Image
-            src="/illustration.png"
-            alt="Success"
-            width={300}
-            height={300}
-            className="mx-auto"
-          />
-          <DialogTitle className="mt-4 text-2xl">Pedido efetuado!</DialogTitle>
-          <DialogDescription className="font-medium">
-            Seu pedido foi efetuado com sucesso. Você pode acompanhar o status
-            na seção de “Meus Pedidos”.
-          </DialogDescription>
 
-          <DialogFooter className="flex w-full justify-center">
-            <Button
-              className="w-full rounded-full text-base font-medium"
-              variant="outline"
-              size="lg"
-              asChild
-            >
-              <Link href="/">Voltar para a loja</Link>
-            </Button>
-            <Button
-              className="w-full rounded-full text-base font-medium"
-              variant="outline"
-              size="lg"
-              asChild
-            >
-              <Link href="/my-orders">Meus Pedidos</Link>
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <div className="flex min-h-[70vh] items-center justify-center px-5">
+        <Dialog open={true} onOpenChange={() => {}}>
+          <DialogContent className="max-w-md border border-white/10 bg-gradient-to-b from-[#0c1324] to-[#080e1a] p-10 text-center shadow-xl shadow-black/40">
+            <Image
+              src="/illustration.png"
+              alt="Pedido efetuado"
+              width={260}
+              height={260}
+              className="animate-fade-in mx-auto drop-shadow-lg"
+            />
+
+            <DialogTitle className="mt-6 text-3xl font-semibold tracking-tight text-white">
+              Pedido efetuado!
+            </DialogTitle>
+
+            <DialogDescription className="mt-2 text-base leading-relaxed text-white/70">
+              Sua compra foi concluída com sucesso. Você pode acompanhar todo o
+              progresso na página{" "}
+              <span className="font-semibold text-white">Meus Pedidos</span>.
+            </DialogDescription>
+
+            <DialogFooter className="mt-8 grid w-full grid-cols-2 gap-3">
+              <Button
+                className="h-12 w-full rounded-full bg-white text-base font-medium text-[#0a0f1f] hover:bg-white/90"
+                asChild
+              >
+                <Link href="/">Voltar para a loja</Link>
+              </Button>
+
+              <Button
+                className="h-12 w-full rounded-full bg-[#0a84ff] text-base font-medium text-white hover:bg-[#0a84ff]/90"
+                asChild
+              >
+                <Link href="/my-orders">Meus pedidos</Link>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </>
   );
 };

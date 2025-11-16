@@ -7,6 +7,8 @@ import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import ConfirmationClient from "./components/confirmation-client";
 
+import { calculateShipping } from "@/actions/shipping/calculate-shipping";
+
 const ConfirmationPage = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -36,6 +38,16 @@ const ConfirmationPage = async () => {
     0
   );
 
+  // ✅ CALCULAR O FRETE
+  const shipping = await calculateShipping({
+    city: cart.shippingAddress.city,
+    state: cart.shippingAddress.state,
+  });
+
+  const shippingInCents = Math.round((shipping?.price ?? 0) * 100);
+
+  const totalInCents = cartTotalInCents + shippingInCents;
+
   return (
     <div>
       <Header />
@@ -43,6 +55,8 @@ const ConfirmationPage = async () => {
       <ConfirmationClient
         cart={{
           subtotal: cartTotalInCents,
+          shippingInCents,
+          total: totalInCents,
           address: cart.shippingAddress,
           items: cart.items.map((item) => ({
             id: item.productVariant.id,

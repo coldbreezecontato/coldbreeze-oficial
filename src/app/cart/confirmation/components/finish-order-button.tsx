@@ -13,10 +13,12 @@ import { useFinishOrder } from "@/hooks/mutations/use-finish-order";
 
 type FinishOrderButtonProps = {
   onCouponApplied: (coupon: any | null) => void;
+  totalInCents: number; // <-- ADICIONADO
 };
 
 export default function FinishOrderButton({
   onCouponApplied,
+  totalInCents,
 }: FinishOrderButtonProps) {
   const finishOrderMutation = useFinishOrder();
 
@@ -31,11 +33,9 @@ export default function FinishOrderButton({
 
     try {
       setIsApplying(true);
-
       const coupon = await applyCoupon(couponCode);
       setAppliedCoupon(coupon);
       onCouponApplied(coupon);
-
       toast.success(`Cupom ${coupon.code} aplicado com sucesso!`);
     } catch (err: any) {
       toast.error(err.message || "Cupom inválido");
@@ -55,14 +55,15 @@ export default function FinishOrderButton({
 
   const handleFinishOrder = async () => {
     const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-    if (!stripeKey) {
-      throw new Error("Stripe publishable key is not set");
-    }
+    if (!stripeKey) throw new Error("Stripe publishable key is not set");
 
     const couponToSend = appliedCoupon?.code || undefined;
 
-    const { orderId } =
-      await finishOrderMutation.mutateAsync(couponToSend);
+    // 🎯 ENVIA O OBJETO CORRETO
+    const { orderId } = await finishOrderMutation.mutateAsync({
+      couponCode: couponToSend,
+      totalPriceInCents: totalInCents,
+    });
 
     const checkoutSession = await createCheckoutSession({
       orderId,

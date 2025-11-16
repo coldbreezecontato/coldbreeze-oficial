@@ -1,75 +1,83 @@
+"use server";
+
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import Footer from "@/components/common/footer";
 import { Header } from "@/components/common/header";
+import Footer from "@/components/common/footer";
 import { db } from "@/db";
-import { shippingAddressTable } from "@/db/schema";
+import { cartTable, shippingAddressTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
-import CartSummary from "../components/cart-summary";
 import Addresses from "./components/addresses";
 
-const IdentificationPage = async () => {
+export default async function IdentificationPage() {
+  // ============================================================
+  // 1) SESSION & AUTH
+  // ============================================================
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-  if (!session?.user.id) {
-    redirect("/");
+
+  const userId = session?.user.id;
+  if (!userId) {
+    redirect("/login");
   }
+
+  // ============================================================
+  // 2) GET CART WITH ALL NECESSARY RELATIONS
+  // ============================================================
   const cart = await db.query.cartTable.findFirst({
-    where: (cart, { eq }) => eq(cart.userId, session.user.id),
+    where: eq(cartTable.userId, userId),
     with: {
       shippingAddress: true,
       items: {
         with: {
           productVariant: {
-            with: {
-              product: true,
-            },
+            with: { product: true },
           },
         },
       },
     },
   });
-  if (!cart || cart?.items.length === 0) {
+
+  // Usuário sem carrinho → volta para home
+  if (!cart || cart.items.length === 0) {
     redirect("/");
   }
+
+  // ============================================================
+  // 3) LOAD USER SHIPPING ADDRESSES
+  // ============================================================
   const shippingAddresses = await db.query.shippingAddressTable.findMany({
-    where: eq(shippingAddressTable.userId, session.user.id),
+    where: eq(shippingAddressTable.userId, userId),
   });
+
+  // ============================================================
+  // 4) CALCULATE CART TOTAL (if needed later)
+  // ============================================================
   const cartTotalInCents = cart.items.reduce(
-    (acc, item) => acc + item.productVariant.priceInCents * item.quantity,
-    0,
+    (total, item) =>
+      total + item.productVariant.priceInCents * item.quantity,
+    0
   );
+
+  // ============================================================
+  // 5) RENDER PAGE
+  // ============================================================
   return (
-    <div>
+    <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="mt-5"></div>
-      <div className="space-y-4 px-5">
+
+      <main className="flex-1 px-5 mt-6 space-y-6">
         <Addresses
           shippingAddresses={shippingAddresses}
-          defaultShippingAddressId={cart.shippingAddress?.id || null}
+          defaultShippingAddressId={cart.shippingAddress?.id ?? null}
         />
-        <CartSummary
-          subtotalInCents={cartTotalInCents}
-          totalInCents={cartTotalInCents}
-          products={cart.items.map((item) => ({
-            id: item.productVariant.id,
-            name: item.productVariant.product.name,
-            variantName: item.productVariant.name,
-            quantity: item.quantity,
-            priceInCents: item.productVariant.priceInCents,
-            imageUrl: item.productVariant.imageUrl,
-          }))}
-        />
-      </div>
-      <div className="mt-12">
-        <Footer />
-      </div>
+      </main>
+
+      <Footer />
     </div>
   );
-};
-
-export default IdentificationPage;
+}

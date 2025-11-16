@@ -9,6 +9,7 @@ interface CartSummaryProps {
   subtotalInCents: number;
   discountInCents?: number;
   totalInCents: number;
+  shippingInCents?: number;
   products: Array<{
     id: string;
     name: string;
@@ -23,16 +24,20 @@ const CartSummary = ({
   subtotalInCents,
   discountInCents = 0,
   totalInCents,
+  shippingInCents = 0,
   products,
 }: CartSummaryProps) => {
   return (
-    <Card className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] 
-        border-b border-[#0a84ff]/20 text-white">
+    <Card
+      className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]
+        border-b border-[#0a84ff]/20 text-white"
+    >
       <CardHeader>
         <CardTitle>Resumo</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-3">
+        {/* Subtotal */}
         <div className="flex justify-between">
           <p className="text-sm">Subtotal</p>
           <p className="text-muted-foreground text-sm font-medium">
@@ -40,18 +45,27 @@ const CartSummary = ({
           </p>
         </div>
 
+        {/* Desconto */}
         {discountInCents > 0 && (
           <div className="flex justify-between text-green-400">
             <p className="text-sm">Desconto</p>
-            <p className="text-sm font-medium">- {formatCentsToBRL(discountInCents)}</p>
+            <p className="text-sm font-medium">
+              - {formatCentsToBRL(discountInCents)}
+            </p>
           </div>
         )}
 
+        {/* Frete */}
         <div className="flex justify-between">
           <p className="text-sm">Frete</p>
-          <p className="text-muted-foreground text-sm font-medium">GRÁTIS</p>
+          <p className="text-muted-foreground text-sm font-medium">
+            {shippingInCents > 0
+              ? formatCentsToBRL(shippingInCents)
+              : "GRÁTIS"}
+          </p>
         </div>
 
+        {/* Total */}
         <div className="flex justify-between">
           <p className="text-sm">Total</p>
           <p className="text-muted-foreground text-sm font-medium">
@@ -63,6 +77,7 @@ const CartSummary = ({
           <Separator />
         </div>
 
+        {/* Produtos */}
         {products.map((product) => (
           <div className="flex items-center justify-between" key={product.id}>
             <div className="flex items-center gap-4">
