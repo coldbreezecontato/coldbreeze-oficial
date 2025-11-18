@@ -94,11 +94,6 @@ export const Cart = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <p>Entrega</p>
-                  <p className="font-medium text-green-400">Grátis</p>
-                </div>
-
                 <Separator className="bg-white/10" />
 
                 <div className="flex items-center justify-between">
