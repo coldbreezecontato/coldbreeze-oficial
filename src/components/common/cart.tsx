@@ -2,6 +2,7 @@
 
 import { ShoppingBasketIcon } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -44,9 +45,15 @@ export const Cart = () => {
       </SheetTrigger>
 
       <SheetContent className="flex flex-col border-none bg-gradient-to-b from-[#0a0f1f] via-[#0b1220] to-[#090d18] p-0">
-        <SheetHeader className="border-b border-white/10 p-5">
-          <SheetTitle className="text-lg font-semibold tracking-wide text-cyan-300">
-            🧊 Seu Carrinho
+        <SheetHeader>
+          <SheetTitle className="flex items-center justify-center h-8">
+            <Image
+              src="/mascote-logo.svg"
+              width={110}
+              height={110}
+              alt="logo"
+              className="select-none relative top-4"
+            />
           </SheetTitle>
         </SheetHeader>
 
@@ -106,7 +113,7 @@ export const Cart = () => {
 
               <Button
                 asChild
-                className="mt-6 w-full rounded-full border-1 border-white bg-gray-950 text-white hover:bg-blue-300 hover:text-black hover:border-black transition-colors shadow-[0_0_20px_rgba(0,255,255,0.25)] duration-300 hover:from-cyan-300 hover:to-blue-400"
+                className="mt-6 w-full rounded-full border-1 border-white bg-gray-950 text-white shadow-[0_0_20px_rgba(0,255,255,0.25)] transition-colors duration-300 hover:border-black hover:bg-blue-300 hover:from-cyan-300 hover:to-blue-400 hover:text-black"
               >
                 <Link href="/cart/identification">Finalizar Compra</Link>
               </Button>
