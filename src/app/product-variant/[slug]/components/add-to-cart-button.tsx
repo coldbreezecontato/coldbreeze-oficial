@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 import { addProductToCart } from "@/actions/add-cart-product";
 import { Button } from "@/components/ui/button";
@@ -41,19 +42,24 @@ const AddToCartButton = ({
         quantity,
       });
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
-    },
-    onError: (error: any) => {
-  if (error.message === "NO_SIZE_SELECTED") {
-    alert("Selecione um tamanho antes de adicionar!");
-  } else if (error.message === "OUT_OF_STOCK") {
-    alert("Quantidade indisponível no estoque!");
-  } else {
-    console.error(error);
-  }
-},
 
+      // 🔥 Toast de sucesso
+      toast.success("Produto adicionado à sacola!");
+    },
+
+    onError: (error: any) => {
+      if (error.message === "NO_SIZE_SELECTED") {
+        toast.error("Selecione um tamanho antes de adicionar!");
+      } else if (error.message === "OUT_OF_STOCK") {
+        toast.error("Quantidade indisponível no estoque!");
+      } else {
+        toast.error("Erro ao adicionar à sacola");
+        console.error(error);
+      }
+    },
   });
 
   const handleAddToCart = () => {
@@ -89,6 +95,7 @@ const AddToCartButton = ({
             >
               <Link href="/authentication">Fazer login</Link>
             </Button>
+
             <Button
               variant="outline"
               className="rounded-full cursor-pointer"
