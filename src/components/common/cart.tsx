@@ -80,7 +80,7 @@ export const Cart = () => {
                 ))}
               </div>
             ) : (
-              <div className="flex h-full flex-col items-center justify-center text-center text-sm text-gray-400">
+              <div className="flex h-full flex-col items-center justify-center mt-45 text-center text-sm text-gray-400">
                 <ShoppingBasketIcon className="mb-3 h-10 w-10 text-gray-600" />
                 <p>Seu carrinho está vazio.</p>
                 <p className="mt-1 text-xs text-gray-500">
