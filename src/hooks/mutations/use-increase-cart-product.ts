@@ -19,6 +19,7 @@ export const useIncreaseCartProduct = (
   productVariantSizeId: string
 ) => {
   const queryClient = useQueryClient();
+  const cartQueryKey = getUseCartQueryKey();
 
   return useMutation({
     mutationKey: getIncreaseCartProductMutationKey(
@@ -26,6 +27,35 @@ export const useIncreaseCartProduct = (
       productVariantSizeId
     ),
 
+    // ============================================================
+    // 🔥 Optimistic Update — sem quebrar estrutura
+    // ============================================================
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: cartQueryKey });
+
+      const previousCart = queryClient.getQueryData(cartQueryKey);
+
+      // Atualização instantânea
+      queryClient.setQueryData(cartQueryKey, (old: any) => {
+        if (!old?.items) return old;
+
+        return {
+          ...old,
+          items: old.items.map((item: any) =>
+            item.productVariantId === productVariantId &&
+            item.productVariantSizeId === productVariantSizeId
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          ),
+        };
+      });
+
+      return { previousCart };
+    },
+
+    // ============================================================
+    // 🚀 Mutation real
+    // ============================================================
     mutationFn: async () => {
       const result = (await addProductToCart({
         productVariantId,
@@ -33,7 +63,6 @@ export const useIncreaseCartProduct = (
         quantity: 1,
       })) as { ok?: boolean; error?: string };
 
-      // 🔥 Tratamento do estoque insuficiente
       if (result.error === "OUT_OF_STOCK") {
         throw new Error("OUT_OF_STOCK");
       }
@@ -41,19 +70,26 @@ export const useIncreaseCartProduct = (
       return result;
     },
 
-    onError: (error) => {
-      if (error instanceof Error && error.message === "OUT_OF_STOCK") {
-        toast.error("Estoque insuficiente! Você atingiu o limite disponível.");
-        return;
+    // ============================================================
+    // ❌ Se falhar → volta ao estado anterior
+    // ============================================================
+    onError: (error, _, context) => {
+      if (context?.previousCart) {
+        queryClient.setQueryData(cartQueryKey, context.previousCart);
       }
 
-      toast.error("Estoque insuficiente! Você atingiu o limite disponível.");
+      toast.error(
+        error instanceof Error && error.message === "OUT_OF_STOCK"
+          ? "Estoque insuficiente! Você atingiu o limite disponível."
+          : "Não foi possível adicionar o item ao carrinho."
+      );
     },
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: getUseCartQueryKey(),
-      });
+    // ============================================================
+    // ✅ Garante estado atualizado do server
+    // ============================================================
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: cartQueryKey });
     },
   });
 };

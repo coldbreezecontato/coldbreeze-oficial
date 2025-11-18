@@ -52,14 +52,14 @@ export const Cart = () => {
               width={110}
               height={110}
               alt="logo"
-              className="select-none relative top-4"
+              className="select-none relative top-2"
             />
           </SheetTitle>
         </SheetHeader>
 
         <div className="flex flex-1 flex-col justify-between overflow-hidden">
           {/* 🔹 Itens */}
-          <ScrollArea className="/* 🔥 ativa o scroll quando ultrapassar 2 itens */ max-h-[360px] overflow-y-auto px-5 py-6">
+          <ScrollArea className="max-h-[360px] overflow-y-auto px-5 py-0">
             {cart?.items && cart.items.length > 0 ? (
               <div className="flex flex-col gap-6">
                 {cart.items.map((item) => (
