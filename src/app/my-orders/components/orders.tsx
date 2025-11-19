@@ -3,19 +3,24 @@
 import Image from "next/image";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+
 import { orderTable } from "@/db/schema";
 import { formatCentsToBRL } from "@/helpers/money";
+
 import { cancelOrder } from "@/actions/orders/cancel-order";
 import { deleteOrder } from "@/actions/orders/delete-order";
 import { retryPayment } from "@/actions/orders/retry-payment";
+
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 
@@ -28,6 +33,9 @@ import {
   ArrowRight,
 } from "lucide-react";
 
+// =========================
+// 📝 TIPAGEM
+// =========================
 interface OrdersProps {
   orders: Array<{
     id: string;
@@ -49,6 +57,15 @@ interface OrdersProps {
   }>;
 }
 
+type OrderActionResponse = {
+  ok: boolean;
+  message?: string;
+  url?: string;
+};
+
+// =========================
+// 🚦 MAPEAMENTO DE STATUS
+// =========================
 const statusMap = {
   pending: {
     label: "Pagamento pendente",
@@ -77,18 +94,18 @@ const statusMap = {
   },
 };
 
-type OrderActionResponse = {
-  ok: boolean;
-  message?: string;
-  url?: string;
-};
-
+// =========================
+// 📦 COMPONENTE PRINCIPAL
+// =========================
 const Orders = ({ orders }: OrdersProps) => {
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id ?? "";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
+  // =========================
+  // 🔧 AÇÕES DO PEDIDO
+  // =========================
   const handleAction = async (
     orderId: string,
     action: "cancel" | "delete" | "retry"
@@ -96,12 +113,15 @@ const Orders = ({ orders }: OrdersProps) => {
     startTransition(async () => {
       let res: OrderActionResponse;
 
-      if (action === "cancel") {
-        res = await cancelOrder(orderId, userId);
-      } else if (action === "delete") {
-        res = await deleteOrder(orderId, userId);
-      } else {
-        res = await retryPayment(orderId, userId);
+      switch (action) {
+        case "cancel":
+          res = await cancelOrder(orderId, userId);
+          break;
+        case "delete":
+          res = await deleteOrder(orderId, userId);
+          break;
+        default:
+          res = await retryPayment(orderId, userId);
       }
 
       if (res.ok) {
@@ -118,6 +138,9 @@ const Orders = ({ orders }: OrdersProps) => {
     });
   };
 
+  // =========================
+  // 🖼️ RENDERIZAÇÃO
+  // =========================
   return (
     <div className="mb-6 space-y-5">
       {orders.map((order) => {
@@ -161,10 +184,11 @@ const Orders = ({ orders }: OrdersProps) => {
                   </AccordionTrigger>
 
                   <AccordionContent>
+                    {/* LISTA DE PRODUTOS */}
                     {order.items.map((product) => (
                       <div
-                        className="flex items-center justify-between py-3"
                         key={product.id}
+                        className="flex items-center justify-between py-3"
                       >
                         <div className="flex items-center gap-4">
                           <Image
@@ -204,7 +228,7 @@ const Orders = ({ orders }: OrdersProps) => {
 
                     {/* TIMELINE */}
                     <div className="bg-[#0d1529] border border-white/10 rounded-lg p-4 mb-4">
-                      <h3 className="text-sm font-semibold mb-3 text-white flex items-center gap-2">
+                      <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                         <ArrowRight className="h-4 w-4 text-cyan-400" />
                         Progresso do pedido
                       </h3>

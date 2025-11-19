@@ -33,12 +33,17 @@ const ConfirmationPage = async () => {
   if (!cart || cart.items.length === 0) redirect("/");
   if (!cart.shippingAddress) redirect("/cart/identification");
 
+  // =========================
+  // SUBTOTAL
+  // =========================
   const cartTotalInCents = cart.items.reduce(
     (acc, item) => acc + item.productVariant.priceInCents * item.quantity,
     0
   );
 
-  // ✅ CALCULAR O FRETE
+  // =========================
+  // FRETE
+  // =========================
   const shipping = await calculateShipping({
     city: cart.shippingAddress.city,
     state: cart.shippingAddress.state,
@@ -46,6 +51,9 @@ const ConfirmationPage = async () => {
 
   const shippingInCents = Math.round((shipping?.price ?? 0) * 100);
 
+  // =========================
+  // TOTAL SEM CUPOM (CUPOM É CALCULADO CLIENT-SIDE)
+  // =========================
   const totalInCents = cartTotalInCents + shippingInCents;
 
   return (
@@ -58,8 +66,10 @@ const ConfirmationPage = async () => {
           shippingInCents,
           total: totalInCents,
           address: cart.shippingAddress,
+
+          // ====== CORREÇÃO DA KEY =======
           items: cart.items.map((item) => ({
-            id: item.productVariant.id,
+            id: item.id, // <<< AGORA SIM: KEY ÚNICA
             name: item.productVariant.product.name,
             variantName: item.productVariant.name,
             quantity: item.quantity,

@@ -10,13 +10,14 @@ import CartSummary from "../../components/cart-summary";
 export default function ConfirmationClient({ cart }: any) {
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
 
-  const discount = appliedCoupon
-    ? appliedCoupon.type === "PERCENT"
-      ? Math.round((cart.subtotal * appliedCoupon.value) / 100)
-      : appliedCoupon.value
-    : 0;
+ const discount = appliedCoupon
+  ? appliedCoupon.type === "PERCENT"
+    ? Math.round(((cart.subtotal + cart.shippingInCents) * appliedCoupon.value) / 100)
+    : appliedCoupon.value
+  : 0;
 
-  const totalWithDiscount = cart.subtotal - discount + cart.shippingInCents;
+const totalWithDiscount = cart.subtotal + cart.shippingInCents - discount;
+
 
   return (
     <div className="space-y-4 px-5 mt-5">

@@ -13,7 +13,7 @@ import { useFinishOrder } from "@/hooks/mutations/use-finish-order";
 
 type FinishOrderButtonProps = {
   onCouponApplied: (coupon: any | null) => void;
-  totalInCents: number; // <-- ADICIONADO
+  totalInCents: number;
 };
 
 export default function FinishOrderButton({
@@ -26,19 +26,25 @@ export default function FinishOrderButton({
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [isApplying, setIsApplying] = useState(false);
 
+  /* ============================================================
+      CUPOM — APLICAR
+  ============================================================ */
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
-      return toast.error("Digite um código de cupom");
+      return toast.error("Digite um código de cupom.");
     }
 
     try {
       setIsApplying(true);
+
       const coupon = await applyCoupon(couponCode);
+
       setAppliedCoupon(coupon);
       onCouponApplied(coupon);
+
       toast.success(`Cupom ${coupon.code} aplicado com sucesso!`);
-    } catch (err: any) {
-      toast.error(err.message || "Cupom inválido");
+    } catch (error: any) {
+      toast.error(error.message || "Cupom inválido.");
       setAppliedCoupon(null);
       onCouponApplied(null);
     } finally {
@@ -46,38 +52,50 @@ export default function FinishOrderButton({
     }
   };
 
+  /* ============================================================
+      CUPOM — REMOVER
+  ============================================================ */
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
     setCouponCode("");
     onCouponApplied(null);
+
     toast("Cupom removido.");
   };
 
+  /* ============================================================
+      FINALIZAR PEDIDO + STRIPE
+  ============================================================ */
   const handleFinishOrder = async () => {
-    const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-    if (!stripeKey) throw new Error("Stripe publishable key is not set");
+    const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    if (!publishableKey) throw new Error("Stripe publishable key missing.");
 
     const couponToSend = appliedCoupon?.code || undefined;
 
-    // 🎯 ENVIA O OBJETO CORRETO
+    // 1. Criar pedido no backend
     const { orderId } = await finishOrderMutation.mutateAsync({
       couponCode: couponToSend,
       totalPriceInCents: totalInCents,
     });
 
+    // 2. Criar checkout session no Stripe
     const checkoutSession = await createCheckoutSession({
       orderId,
       couponCode: couponToSend,
     });
 
-    const stripe = await loadStripe(stripeKey);
-    if (!stripe) throw new Error("Failed to load Stripe");
+    // 3. Redirecionar
+    const stripe = await loadStripe(publishableKey);
+    if (!stripe) throw new Error("Failed to initialize Stripe.");
 
     await stripe.redirectToCheckout({ sessionId: checkoutSession.id });
   };
 
   return (
     <div className="space-y-3">
+      {/* ============================================================
+          CUPOM — INPUT E BOTÃO
+      ============================================================ */}
       {!appliedCoupon ? (
         <div className="flex gap-2">
           <Input
@@ -86,6 +104,7 @@ export default function FinishOrderButton({
             onChange={(e) => setCouponCode(e.target.value)}
             className="bg-white/5 text-white"
           />
+
           <Button onClick={handleApplyCoupon} disabled={isApplying}>
             {isApplying ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -95,31 +114,35 @@ export default function FinishOrderButton({
           </Button>
         </div>
       ) : (
-        <div className="flex items-center justify-between rounded-md border border-green-600/50 bg-green-600/10 px-3 py-2 text-green-400">
-          <p className="text-sm">
-            Cupom <strong>{appliedCoupon.code}</strong> aplicado (
+        <div className="flex items-center justify-between rounded-md border border-green-600/20 bg-green-600/10 px-3 py-2 text-green-400">
+          <p className="text-sm font-medium">
+            Cupom <strong>{appliedCoupon.code}</strong> aplicado —{" "}
             {appliedCoupon.type === "PERCENT"
-              ? `${appliedCoupon.value}%`
-              : `R$ ${(appliedCoupon.value / 100).toFixed(2)}`}
-            )
+              ? `${appliedCoupon.value}% off`
+              : `R$ ${(appliedCoupon.value / 100).toFixed(2)} de desconto`}
           </p>
+
           <button
             onClick={handleRemoveCoupon}
-            className="text-green-400 hover:text-red-400 transition"
+            className="hover:text-red-400 transition"
+            aria-label="Remover cupom"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
       )}
 
+      {/* ============================================================
+          FINALIZAR COMPRA
+      ============================================================ */}
       <Button
-        className="w-full rounded-full cursor-pointer"
+        className="w-full rounded-full cursor-pointer font-semibold text-base tracking-wide"
         size="lg"
         onClick={handleFinishOrder}
         disabled={finishOrderMutation.isPending}
       >
         {finishOrderMutation.isPending && (
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
         )}
         Finalizar compra
       </Button>
