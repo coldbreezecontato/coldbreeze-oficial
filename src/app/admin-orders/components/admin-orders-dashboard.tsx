@@ -8,6 +8,7 @@ import { formatCentsToBRL } from "@/helpers/money";
 
 import { orderStatus } from "@/db/schema";
 import { updateOrderStatusAction } from "./actions/update-status";
+import { Header } from "@/components/common/header";
 
 // =======================
 // TIPO DO ITEM DO PEDIDO
@@ -42,6 +43,7 @@ const shippingLabelMap: Record<string, string> = {
 export default function AdminOrdersDashboard({ orders }: { orders: any[] }) {
   return (
     <div className="min-h-screen p-8 text-white">
+      <Header /> 
       <h1 className="mb-6 text-3xl font-bold">Pedidos</h1>
 
       {orders.length === 0 && (

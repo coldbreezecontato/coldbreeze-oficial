@@ -33,7 +33,7 @@ export function ShippingPreview({
   ];
 
   return (
-    <div className="mt-3 space-y-2">
+    <div className="mt-3 space-y-4">
       <p className="text-sm font-medium text-white">Escolha o método de entrega:</p>
 
       {methods.map((m) => (
@@ -46,6 +46,7 @@ export function ShippingPreview({
           <input
             type="radio"
             name="shippingMethod"
+            className="mr-2"
             checked={selected === m.id}
             onChange={async () => {
               setSelected(m.id);
