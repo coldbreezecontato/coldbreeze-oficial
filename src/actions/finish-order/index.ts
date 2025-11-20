@@ -15,9 +15,15 @@ import { auth } from "@/lib/auth";
 
 export const finishOrder = async ({
   couponCode,
+  subtotalInCents,
+  shippingInCents,
+  discountInCents,
   totalPriceInCents,
 }: {
   couponCode?: string;
+  subtotalInCents: number;
+  shippingInCents: number;
+  discountInCents: number;
   totalPriceInCents: number;
 }) => {
   const session = await auth.api.getSession({
@@ -28,16 +34,14 @@ export const finishOrder = async ({
     throw new Error("Unauthorized");
   }
 
-  // ============================================================
-  // 🛡️ 1. Proteção anti duplicação de pedido
-  // ============================================================
-
+  /* ============================================================
+     🛡️ 1. Proteção anti duplicação de pedido
+  ============================================================ */
   const existingOrder = await db.query.orderTable.findFirst({
     where: eq(orderTable.userId, session.user.id),
     orderBy: (t, { desc }) => [desc(t.createdAt)],
   });
 
-  // se o último pedido foi criado nos últimos 5s, não cria outro
   if (existingOrder) {
     const diff = Date.now() - new Date(existingOrder.createdAt).getTime();
     if (diff < 5000) {
@@ -45,10 +49,9 @@ export const finishOrder = async ({
     }
   }
 
-  // ============================================================
-  // 🛒 Carrega carrinho completo
-  // ============================================================
-
+  /* ============================================================
+     🛒 2. Carrega carrinho
+  ============================================================ */
   const cart = await db.query.cartTable.findFirst({
     where: eq(cartTable.userId, session.user.id),
     with: {
@@ -62,7 +65,6 @@ export const finishOrder = async ({
     },
   });
 
-  // 🛡️ Se carrinho já foi apagado (segunda tentativa) → retorna último pedido
   if (!cart) {
     if (existingOrder) return { orderId: existingOrder.id };
     throw new Error("Cart not found");
@@ -75,16 +77,9 @@ export const finishOrder = async ({
 
   const shippingAddress = cart.shippingAddress;
 
-  // ============================================================
-  // 🎯 FRONT envia total final (subtotal - desconto + frete)
-  // ============================================================
-
-  let finalTotal = totalPriceInCents;
-
-  // ============================================================
-  // 🎟️ Valida cupom
-  // ============================================================
-
+  /* ============================================================
+     🎟️ 3. Valida cupom
+  ============================================================ */
   let couponId: string | null = null;
 
   if (couponCode) {
@@ -99,10 +94,9 @@ export const finishOrder = async ({
 
   let orderId: string | undefined;
 
-  // ============================================================
-  // 🧾 Criar pedido (TRANSACTION)
-  // ============================================================
-
+  /* ============================================================
+     🧾 4. Criar pedido (TRANSAÇÃO)
+  ============================================================ */
   await db.transaction(async (tx) => {
     const [order] = await tx
       .insert(orderTable)
@@ -120,17 +114,23 @@ export const finishOrder = async ({
         state: shippingAddress.state,
         street: shippingAddress.street,
         userId: session.user.id,
-        totalPriceInCents: finalTotal,
+
+        // 🔥 Agora salva tudo corretamente:
+        subtotalInCents,
+        shippingInCents,
+        discountInCents,
+        totalPriceInCents,
+
         shippingAddressId: shippingAddress.id,
         couponId: couponId,
       })
       .returning();
 
-    if (!order) {
-      throw new Error("Failed to create order");
-    }
+    if (!order) throw new Error("Failed to create order");
 
     orderId = order.id;
+
+    // ------------------------------------------------------------
 
     const orderItemsPayload: Array<typeof orderItemTable.$inferInsert> =
       cart.items.map((item) => ({
@@ -143,10 +143,7 @@ export const finishOrder = async ({
 
     await tx.insert(orderItemTable).values(orderItemsPayload);
 
-    // ============================================================
-    // 🧹 Limpa carrinho — MAS isso deve ser seguro agora
-    // ============================================================
-
+    // 🔥 Apagar carrinho com segurança
     await tx.delete(cartItemTable).where(eq(cartItemTable.cartId, cart.id));
     await tx.delete(cartTable).where(eq(cartTable.id, cart.id));
   });

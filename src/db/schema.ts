@@ -86,7 +86,6 @@ export const categoryTable = pgTable("category", {
 
 export const productTable = pgTable("product", {
   id: uuid().primaryKey().defaultRandom(),
-  // se a categoria for deletada, o produto continua, mas sem categoria
   categoryId: uuid("category_id").references(() => categoryTable.id, {
     onDelete: "set null",
   }),
@@ -120,7 +119,7 @@ export const productVariantTable = pgTable("product_variant", {
 
 export const productSizeTable = pgTable("product_size", {
   id: uuid().primaryKey().defaultRandom(),
-  name: text("name").notNull(), // ex.: P, M, G, GG
+  name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -186,7 +185,6 @@ export const cartTable = pgTable("cart", {
     { onDelete: "set null" },
   ),
 
-  // ===== FRETE ESCOLHIDO PARA O CARRINHO =====
   shippingMethod: text("shipping_method").notNull().default("cold"),
   shippingPriceInCents: integer("shipping_price_in_cents")
     .notNull()
@@ -206,7 +204,6 @@ export const cartItemTable = pgTable("cart_item", {
     .notNull()
     .references(() => productVariantTable.id, { onDelete: "cascade" }),
 
-  // tamanho selecionado (pode ser null se variante não tiver tamanho)
   productVariantSizeId: uuid("product_variant_size_id").references(
     () => productVariantSizeTable.id,
     { onDelete: "set null" },
@@ -239,21 +236,20 @@ export const couponTable = pgTable("coupon", {
 ============================================================ */
 
 export const orderStatus = pgEnum("order_status", [
-  "pending",        // aguardando pagamento
-  "in_production",  // separação e embalagem
-  "on_the_way",     // transportadora / enviando
-  "delivered",      // entregue
+  "pending",
+  "in_production",
+  "on_the_way",
+  "delivered",
   "canceled",
 ]);
 
 export const orderTable = pgTable("order", {
   id: uuid().primaryKey().defaultRandom(),
+
   userId: text("user_id")
     .notNull()
     .references(() => userTable.id, { onDelete: "cascade" }),
 
-  // guardamos o endereço "snapshot" aqui, então se o address for deletado,
-  // o pedido continua válido: por isso set null.
   shippingAddressId: uuid("shipping_address_id").references(
     () => shippingAddressTable.id,
     { onDelete: "set null" },
@@ -276,7 +272,13 @@ export const orderTable = pgTable("order", {
     onDelete: "set null",
   }),
 
+  // 🔥 CAMPOS CORRIGIDOS (faltavam)
+  subtotalInCents: integer("subtotal_in_cents").notNull(),
+  shippingInCents: integer("shipping_in_cents").notNull(),
+  discountInCents: integer("discount_in_cents").notNull().default(0),
+
   totalPriceInCents: integer("total_price_in_cents").notNull(),
+
   status: orderStatus().notNull().default("pending"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

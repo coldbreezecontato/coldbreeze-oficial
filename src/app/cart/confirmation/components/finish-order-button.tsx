@@ -13,11 +13,19 @@ import { useFinishOrder } from "@/hooks/mutations/use-finish-order";
 
 type FinishOrderButtonProps = {
   onCouponApplied: (coupon: any | null) => void;
+
+  // 🔥 Agora recebemos tudo necessário
+  subtotalInCents: number;
+  shippingInCents: number;
+  discountInCents: number;
   totalInCents: number;
 };
 
 export default function FinishOrderButton({
   onCouponApplied,
+  subtotalInCents,
+  shippingInCents,
+  discountInCents,
   totalInCents,
 }: FinishOrderButtonProps) {
   const finishOrderMutation = useFinishOrder();
@@ -30,13 +38,10 @@ export default function FinishOrderButton({
       CUPOM — APLICAR
   ============================================================ */
   const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) {
-      return toast.error("Digite um código de cupom.");
-    }
+    if (!couponCode.trim()) return toast.error("Digite um código de cupom.");
 
     try {
       setIsApplying(true);
-
       const coupon = await applyCoupon(couponCode);
 
       setAppliedCoupon(coupon);
@@ -53,18 +58,17 @@ export default function FinishOrderButton({
   };
 
   /* ============================================================
-      CUPOM — REMOVER
+      REMOVER CUPOM
   ============================================================ */
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
     setCouponCode("");
     onCouponApplied(null);
-
     toast("Cupom removido.");
   };
 
   /* ============================================================
-      FINALIZAR PEDIDO + STRIPE
+      FINALIZAR PEDIDO
   ============================================================ */
   const handleFinishOrder = async () => {
     const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -75,6 +79,11 @@ export default function FinishOrderButton({
     // 1. Criar pedido no backend
     const { orderId } = await finishOrderMutation.mutateAsync({
       couponCode: couponToSend,
+
+      // 🔥 Agora enviamos tudo corretamente
+      subtotalInCents,
+      shippingInCents,
+      discountInCents,
       totalPriceInCents: totalInCents,
     });
 
@@ -93,9 +102,6 @@ export default function FinishOrderButton({
 
   return (
     <div className="space-y-3">
-      {/* ============================================================
-          CUPOM — INPUT E BOTÃO
-      ============================================================ */}
       {!appliedCoupon ? (
         <div className="flex gap-2">
           <Input
@@ -106,11 +112,7 @@ export default function FinishOrderButton({
           />
 
           <Button onClick={handleApplyCoupon} disabled={isApplying}>
-            {isApplying ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              "Aplicar"
-            )}
+            {isApplying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Aplicar"}
           </Button>
         </div>
       ) : (
@@ -132,9 +134,6 @@ export default function FinishOrderButton({
         </div>
       )}
 
-      {/* ============================================================
-          FINALIZAR COMPRA
-      ============================================================ */}
       <Button
         className="w-full rounded-full cursor-pointer font-semibold text-base tracking-wide"
         size="lg"

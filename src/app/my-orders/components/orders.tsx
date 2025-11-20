@@ -311,20 +311,20 @@ const Orders = ({ orders }: OrdersProps) => {
                       </div>
 
                       <div className="flex justify-between text-sm">
-                        <p>Desconto</p>
-                        <p className="text-green-400">
-                          {order.discountInCents > 0
-                            ? `- ${formatCentsToBRL(order.discountInCents)}`
-                            : "—"}
-                        </p>
-                      </div>
-
-                      <div className="flex justify-between text-sm">
                         <p>Frete</p>
                         <p className="text-gray-300">
                           {order.shippingInCents === 0
                             ? "GRÁTIS"
                             : formatCentsToBRL(order.shippingInCents)}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between text-sm">
+                        <p>Desconto</p>
+                        <p className="text-green-400">
+                          {order.discountInCents > 0
+                            ? `- ${formatCentsToBRL(order.discountInCents)}`
+                            : "—"}
                         </p>
                       </div>
 

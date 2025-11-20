@@ -11,8 +11,6 @@ import Orders from "./components/orders";
 import Image from "next/image";
 import Link from "next/link";
 
-import { DistanceService } from "@/lib/shipping/distance-service";
-
 const MyOrdersPage = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -22,7 +20,7 @@ const MyOrdersPage = async () => {
     redirect("/login");
   }
 
-  // Busca pedidos do usuário
+  // Busca pedidos COMPLETOS com dados reais
   const orders = await db.query.orderTable.findMany({
     where: eq(orderTable.userId, session.user.id),
     with: {
@@ -35,46 +33,31 @@ const MyOrdersPage = async () => {
     },
   });
 
-  // FORMATAÇÃO FINAL: Subtotal + Frete + Desconto
-  const formattedOrders = await Promise.all(
-    orders.map(async (order) => {
-      // FRETE (DistanceService)
-      const shippingInCents =
-        Math.round((await DistanceService.calculate(order.city, order.state)) * 100);
+  // FORMATAÇÃO FINAL — usando APENAS o que veio do DB
+  const formattedOrders = orders.map((order) => {
+    return {
+      id: order.id,
 
-      // SUBTOTAL: soma dos valores dos itens
-      const subtotalInCents = order.items.reduce((acc, item) => {
-        return (
-          acc +
-          (item.productVariant?.priceInCents ?? 0) * item.quantity
-        );
-      }, 0);
+      // 🔥 Usa exatamente o que foi salvo pelo finishOrder()
+      totalPriceInCents: order.totalPriceInCents,
+      shippingInCents: order.shippingInCents,
+      subtotalInCents: order.subtotalInCents,
+      discountInCents: order.discountInCents,
 
-      // DESCONTO = subtotal - (total - frete)
-      const discountInCents =
-        subtotalInCents - (order.totalPriceInCents - shippingInCents);
+      status: order.status,
+      createdAt: order.createdAt,
 
-      return {
-        id: order.id,
-        totalPriceInCents: order.totalPriceInCents, // total final salvo no pedido
-        shippingInCents,
-        subtotalInCents,
-        discountInCents,
-        status: order.status,
-        createdAt: order.createdAt,
-
-        items: order.items.map((item) => ({
-          id: item.id,
-          imageUrl: item.productVariant?.imageUrl ?? "",
-          productName: item.productVariant?.product.name ?? "Produto removido",
-          productVariantName: item.productVariant?.name ?? "",
-          sizeName: item.productVariantSize?.size.name ?? "—",
-          priceInCents: item.productVariant?.priceInCents ?? 0,
-          quantity: item.quantity,
-        })),
-      };
-    })
-  );
+      items: order.items.map((item) => ({
+        id: item.id,
+        imageUrl: item.productVariant?.imageUrl ?? "",
+        productName: item.productVariant?.product.name ?? "Produto removido",
+        productVariantName: item.productVariant?.name ?? "",
+        sizeName: item.productVariantSize?.size.name ?? "—",
+        priceInCents: item.productVariant?.priceInCents ?? 0,
+        quantity: item.quantity,
+      })),
+    };
+  });
 
   return (
     <>

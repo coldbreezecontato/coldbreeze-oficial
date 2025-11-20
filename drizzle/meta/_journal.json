@@ -71,6 +71,13 @@
       "when": 1763639285166,
       "tag": "0009_fearless_morlocks",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1763645052026,
+      "tag": "0010_sticky_captain_america",
+      "breakpoints": true
     }
   ]
 }

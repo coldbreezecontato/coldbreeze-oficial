@@ -16,13 +16,12 @@ export default function ConfirmationClient({ cart }: any) {
   const discount = appliedCoupon
     ? appliedCoupon.type === "PERCENT"
       ? Math.round(
-          ((cart.subtotal + cart.shippingInCents) * appliedCoupon.value) / 100
+          ((cart.subtotal + cart.shippingInCents) * appliedCoupon.value) / 100,
         )
       : appliedCoupon.value
     : 0;
 
-  const totalWithDiscount =
-    cart.subtotal + cart.shippingInCents - discount;
+  const totalWithDiscount = cart.subtotal + cart.shippingInCents - discount;
 
   // ============================================================
   // LABEL DO MÉTODO DE ENTREGA
@@ -37,34 +36,28 @@ export default function ConfirmationClient({ cart }: any) {
     shippingLabelMap[cart.shippingMethod] || "Método não definido";
 
   return (
-    <div className="space-y-4 px-5 mt-5">
-      <Card
-        className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]
-        border-b border-[#0a84ff]/20 text-white"
-      >
+    <div className="mt-5 space-y-4 px-5">
+      <Card className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] text-white">
         <CardHeader>
           <CardTitle>Identificação</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-6">
-          <Card
-            className="bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]
-            border-b border-[#0a84ff]/20 text-white"
-          >
+          <Card className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] text-white">
             <CardContent>
               {/* ENDEREÇO */}
               <p className="text-sm">{formatAddress(cart.address)}</p>
 
               {/* MÉTODO DE ENTREGA */}
               {cart.shippingMethod && (
-                <p className="text-sm text-blue-400 mt-2">
+                <p className="mt-2 text-sm text-blue-400">
                   Método de entrega: {shippingMethodLabel}
                 </p>
               )}
 
               {/* VALOR DO FRETE */}
               {typeof cart.shippingInCents === "number" && (
-                <p className="text-sm text-green-400 mt-1">
+                <p className="mt-1 text-sm text-green-400">
                   Frete:{" "}
                   {(cart.shippingInCents / 100).toLocaleString("pt-BR", {
                     style: "currency",
@@ -78,6 +71,9 @@ export default function ConfirmationClient({ cart }: any) {
           {/* ENVIA O TOTAL CORRETO */}
           <FinishOrderButton
             onCouponApplied={setAppliedCoupon}
+            subtotalInCents={cart.subtotal}
+            shippingInCents={cart.shippingInCents}
+            discountInCents={discount}
             totalInCents={totalWithDiscount}
           />
         </CardContent>
