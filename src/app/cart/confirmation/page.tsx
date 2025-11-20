@@ -7,15 +7,19 @@ import { db } from "@/db";
 import { auth } from "@/lib/auth";
 import ConfirmationClient from "./components/confirmation-client";
 
-import { calculateShipping } from "@/actions/shipping/calculate-shipping";
-
 const ConfirmationPage = async () => {
+  // ============================================================
+  // SESSION
+  // ============================================================
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  if (!session?.user.id) redirect("/");
+  if (!session?.user?.id) redirect("/");
 
+  // ============================================================
+  // BUSCAR CARRINHO COMPLETO
+  // ============================================================
   const cart = await db.query.cartTable.findFirst({
     where: (cart, { eq }) => eq(cart.userId, session.user.id),
     with: {
@@ -33,43 +37,42 @@ const ConfirmationPage = async () => {
   if (!cart || cart.items.length === 0) redirect("/");
   if (!cart.shippingAddress) redirect("/cart/identification");
 
-  // =========================
+  // ============================================================
   // SUBTOTAL
-  // =========================
-  const cartTotalInCents = cart.items.reduce(
+  // ============================================================
+  const subtotal = cart.items.reduce(
     (acc, item) => acc + item.productVariant.priceInCents * item.quantity,
     0
   );
 
-  // =========================
-  // FRETE
-  // =========================
-  const shipping = await calculateShipping({
-    city: cart.shippingAddress.city,
-    state: cart.shippingAddress.state,
-  });
+  // ============================================================
+  // FRETE — CORREÇÃO AQUI
+  // ============================================================
+  const shippingInCents = Math.round(cart.shippingPriceInCents ?? 0);
+  const shippingMethod = cart.shippingMethod ?? null;
 
-  const shippingInCents = Math.round((shipping?.price ?? 0) * 100);
+  // ============================================================
+  // TOTAL
+  // ============================================================
+  const totalInCents = subtotal + shippingInCents;
 
-  // =========================
-  // TOTAL SEM CUPOM (CUPOM É CALCULADO CLIENT-SIDE)
-  // =========================
-  const totalInCents = cartTotalInCents + shippingInCents;
-
+  // ============================================================
+  // RETORNO
+  // ============================================================
   return (
     <div>
       <Header />
 
       <ConfirmationClient
         cart={{
-          subtotal: cartTotalInCents,
+          subtotal,
           shippingInCents,
+          shippingMethod,
           total: totalInCents,
           address: cart.shippingAddress,
 
-          // ====== CORREÇÃO DA KEY =======
           items: cart.items.map((item) => ({
-            id: item.id, // <<< AGORA SIM: KEY ÚNICA
+            id: item.id,
             name: item.productVariant.product.name,
             variantName: item.productVariant.name,
             quantity: item.quantity,

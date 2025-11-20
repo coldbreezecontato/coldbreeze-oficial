@@ -64,6 +64,13 @@
       "when": 1763306595016,
       "tag": "0008_breezy_old_lace",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1763639285166,
+      "tag": "0009_fearless_morlocks",
+      "breakpoints": true
     }
   ]
 }

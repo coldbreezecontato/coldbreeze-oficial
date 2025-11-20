@@ -32,6 +32,9 @@ import { useUserAddresses } from "@/hooks/queries/use-user-addresses";
 import { formatAddress } from "../../helpers/address";
 import { ShippingPreview } from "./shipping-preview";
 
+// ------------------------------
+// FORM SCHEMA
+// ------------------------------
 const formSchema = z.object({
   email: z.email("E-mail inválido"),
   fullName: z.string().min(1, "Nome completo é obrigatório"),
@@ -53,14 +56,23 @@ interface AddressesProps {
   defaultShippingAddressId: string | null;
 }
 
+// ------------------------------
+// COMPONENT
+// ------------------------------
 const Addresses = ({
   shippingAddresses,
   defaultShippingAddressId,
 }: AddressesProps) => {
   const router = useRouter();
+
   const [selectedAddress, setSelectedAddress] = useState<string | null>(
     defaultShippingAddressId || null,
   );
+
+  const [selectedMethod, setSelectedMethod] = useState<{
+    method: "cold" | "sedex" | "pac";
+    price: number;
+  } | null>(null);
 
   const createShippingAddressMutation = useCreateShippingAddress();
   const updateCartShippingAddressMutation = useUpdateCartShippingAddress();
@@ -87,36 +99,58 @@ const Addresses = ({
     },
   });
 
+  // ------------------------------
+  // CREATE NEW ADDRESS
+  // ------------------------------
   const onSubmit = async (values: FormValues) => {
     try {
-      const newAddress = await createShippingAddressMutation.mutateAsync(values);
+      const newAddress =
+        await createShippingAddressMutation.mutateAsync(values);
+
       toast.success("Endereço criado com sucesso!");
       form.reset();
       setSelectedAddress(newAddress.id);
 
+      // Vínculo inicial sem método selecionado ainda
       await updateCartShippingAddressMutation.mutateAsync({
         shippingAddressId: newAddress.id,
+        shippingMethod: "cold",
+        shippingPrice: 0,
       });
+
       toast.success("Endereço vinculado ao carrinho!");
     } catch {
       toast.error("Erro ao criar endereço. Tente novamente.");
     }
   };
 
+  // ------------------------------
+  // GO TO PAYMENT
+  // ------------------------------
   const handleGoToPayment = async () => {
     if (!selectedAddress || selectedAddress === "add_new") return;
+
+    if (!selectedMethod) {
+      toast.error("Selecione um método de entrega antes de continuar.");
+      return;
+    }
 
     try {
       await updateCartShippingAddressMutation.mutateAsync({
         shippingAddressId: selectedAddress,
+        shippingMethod: selectedMethod.method,
+        shippingPrice: selectedMethod.price,
       });
-      toast.success("Endereço selecionado para entrega!");
+
       router.push("/cart/confirmation");
     } catch {
-      toast.error("Erro ao selecionar endereço. Tente novamente.");
+      toast.error("Erro ao selecionar método de entrega.");
     }
   };
 
+  // ------------------------------
+  // RENDER
+  // ------------------------------
   return (
     <Card className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f] text-white">
       <CardHeader>
@@ -124,30 +158,29 @@ const Addresses = ({
       </CardHeader>
 
       <CardContent>
-        {/* Lista de endereços */}
         {isLoading ? (
           <div className="py-4 text-center">
             <p>Carregando endereços...</p>
           </div>
         ) : (
-          <RadioGroup value={selectedAddress ?? ""} onValueChange={setSelectedAddress}>
-            {addresses?.length === 0 && (
-              <p className="text-center text-muted-foreground py-4">
-                Você ainda não possui endereços cadastrados.
-              </p>
-            )}
-
+          <RadioGroup
+            value={selectedAddress ?? ""}
+            onValueChange={(value) => {
+              setSelectedAddress(value);
+              setSelectedMethod(null); // Resetar frete ao mudar endereço
+            }}
+          >
             {addresses?.map((address) => (
               <Card
                 key={address.id}
                 className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]"
               >
                 <CardContent>
-                  <div className="flex justify-between items-start text-white">
+                  <div className="flex items-start justify-between text-white">
                     <div className="flex items-start space-x-2">
                       <RadioGroupItem value={address.id} id={address.id} />
 
-                      <Label htmlFor={address.id} className="cursor-pointer flex-1">
+                      <Label htmlFor={address.id} className="cursor-pointer">
                         <p className="text-sm">{formatAddress(address)}</p>
                       </Label>
                     </div>
@@ -155,7 +188,9 @@ const Addresses = ({
                     <button
                       onClick={async () => {
                         try {
-                          await deleteShippingAddressMutation.mutateAsync(address.id);
+                          await deleteShippingAddressMutation.mutateAsync(
+                            address.id,
+                          );
                           toast.success("Endereço excluído!");
 
                           if (selectedAddress === address.id) {
@@ -171,15 +206,22 @@ const Addresses = ({
                     </button>
                   </div>
 
-                  {/* 🔥 FRETE DO ENDEREÇO SELECIONADO */}
+                  {/* FRETE PARA O ENDEREÇO SELECIONADO */}
                   {selectedAddress === address.id && (
-                    <ShippingPreview city={address.city} state={address.state} />
+                    <ShippingPreview
+                      addressId={address.id}
+                      city={address.city}
+                      state={address.state}
+                      onSelect={(method, price) => {
+                        setSelectedMethod({ method, price });
+                      }}
+                    />
                   )}
                 </CardContent>
               </Card>
             ))}
 
-            {/* Opção de adicionar novo */}
+            {/* ADD NEW ADDRESS */}
             <Card className="border-b border-[#0a84ff]/20 bg-gradient-to-r from-[#0a0f1f] via-[#0c1a33] to-[#08111f]">
               <CardContent>
                 <div className="flex items-center space-x-2 text-white">
@@ -191,30 +233,35 @@ const Addresses = ({
           </RadioGroup>
         )}
 
-        {/* Botão "Ir para pagamento" */}
+        {/* IR PARA PAGAMENTO */}
         {selectedAddress && selectedAddress !== "add_new" && (
           <Button
             onClick={handleGoToPayment}
-            className="w-full mt-4"
+            className="mt-4 w-full"
             disabled={updateCartShippingAddressMutation.isPending}
           >
-            {updateCartShippingAddressMutation.isPending ? "Processando..." : "Ir para pagamento"}
+            {updateCartShippingAddressMutation.isPending
+              ? "Processando..."
+              : "Ir para pagamento"}
           </Button>
         )}
 
-        {/* Formulário de novo endereço */}
+        {/* FORM DE NOVO ENDEREÇO */}
         {selectedAddress === "add_new" && (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-4">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="mt-4 space-y-4"
+            >
               <div className="grid gap-4 md:grid-cols-2">
                 {[
-                  { name: "email", label: "Email", placeholder: "Digite seu email" },
-                  { name: "fullName", label: "Nome completo", placeholder: "Seu nome" },
-                  { name: "address", label: "Endereço", placeholder: "Rua, avenida..." },
-                  { name: "number", label: "Número", placeholder: "123" },
-                  { name: "neighborhood", label: "Bairro", placeholder: "Bairro" },
-                  { name: "city", label: "Cidade", placeholder: "Cidade" },
-                  { name: "state", label: "Estado", placeholder: "SP, RJ..." },
+                  { name: "email", label: "Email" },
+                  { name: "fullName", label: "Nome completo" },
+                  { name: "address", label: "Endereço" },
+                  { name: "number", label: "Número" },
+                  { name: "neighborhood", label: "Bairro" },
+                  { name: "city", label: "Cidade" },
+                  { name: "state", label: "Estado" },
                 ].map((field) => (
                   <FormField
                     key={field.name}
@@ -224,7 +271,7 @@ const Addresses = ({
                       <FormItem>
                         <FormLabel>{field.label}</FormLabel>
                         <FormControl>
-                          <Input placeholder={field.placeholder} {...f} className="border-blue-950" />
+                          <Input {...f} className="border-blue-950" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -232,6 +279,7 @@ const Addresses = ({
                   />
                 ))}
 
+                {/* CPF */}
                 <FormField
                   control={form.control}
                   name="cpf"
@@ -241,10 +289,8 @@ const Addresses = ({
                       <FormControl>
                         <PatternFormat
                           format="###.###.###-##"
-                          placeholder="000.000.000-00"
                           customInput={Input}
                           {...field}
-                          className="border-blue-950"
                         />
                       </FormControl>
                       <FormMessage />
@@ -252,6 +298,7 @@ const Addresses = ({
                   )}
                 />
 
+                {/* CELULAR */}
                 <FormField
                   control={form.control}
                   name="phone"
@@ -261,10 +308,8 @@ const Addresses = ({
                       <FormControl>
                         <PatternFormat
                           format="(##) #####-####"
-                          placeholder="(11) 99999-9999"
                           customInput={Input}
                           {...field}
-                          className="border-blue-950"
                         />
                       </FormControl>
                       <FormMessage />
@@ -272,6 +317,7 @@ const Addresses = ({
                   )}
                 />
 
+                {/* CEP */}
                 <FormField
                   control={form.control}
                   name="zipCode"
@@ -281,28 +327,8 @@ const Addresses = ({
                       <FormControl>
                         <PatternFormat
                           format="#####-###"
-                          placeholder="00000-000"
                           customInput={Input}
                           {...field}
-                          className="border-blue-950"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="complement"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Complemento</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Apto, bloco, etc. (opcional)"
-                          {...field}
-                          className="border-blue-950"
                         />
                       </FormControl>
                       <FormMessage />
@@ -319,8 +345,7 @@ const Addresses = ({
                   updateCartShippingAddressMutation.isPending
                 }
               >
-                {createShippingAddressMutation.isPending ||
-                updateCartShippingAddressMutation.isPending
+                {createShippingAddressMutation.isPending
                   ? "Salvando..."
                   : "Salvar endereço"}
               </Button>

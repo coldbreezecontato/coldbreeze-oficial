@@ -176,13 +176,22 @@ export const shippingAddressTable = pgTable("shipping_address", {
 
 export const cartTable = pgTable("cart", {
   id: uuid().primaryKey().defaultRandom(),
+
   userId: text("user_id")
     .notNull()
     .references(() => userTable.id, { onDelete: "cascade" }),
+
   shippingAddressId: uuid("shipping_address_id").references(
     () => shippingAddressTable.id,
     { onDelete: "set null" },
   ),
+
+  // ===== FRETE ESCOLHIDO PARA O CARRINHO =====
+  shippingMethod: text("shipping_method").notNull().default("cold"),
+  shippingPriceInCents: integer("shipping_price_in_cents")
+    .notNull()
+    .default(0),
+
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -237,7 +246,6 @@ export const orderStatus = pgEnum("order_status", [
   "canceled",
 ]);
 
-
 export const orderTable = pgTable("order", {
   id: uuid().primaryKey().defaultRandom(),
   userId: text("user_id")
@@ -246,8 +254,10 @@ export const orderTable = pgTable("order", {
 
   // guardamos o endereço "snapshot" aqui, então se o address for deletado,
   // o pedido continua válido: por isso set null.
-  shippingAddressId: uuid("shipping_address_id")
-    .references(() => shippingAddressTable.id, { onDelete: "set null" }),
+  shippingAddressId: uuid("shipping_address_id").references(
+    () => shippingAddressTable.id,
+    { onDelete: "set null" },
+  ),
 
   recipientName: text().notNull(),
   street: text().notNull(),

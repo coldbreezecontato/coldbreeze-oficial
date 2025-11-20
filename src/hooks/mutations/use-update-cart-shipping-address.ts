@@ -1,25 +1,30 @@
+"use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
 import { updateCartShippingAddress } from "@/actions/update-cart-shipping-address";
-import { UpdateCartShippingAddressSchema } from "@/actions/update-cart-shipping-address/schema";
-
 import { getUseCartQueryKey } from "../queries/use-cart";
 
-export const getUpdateCartShippingAddressMutationKey = () => [
-  "update-cart-shipping-address",
-];
+// Tipagem com os valores PERMITIDOS pelo schema Zod
+type ShippingMethod = "cold" | "sedex" | "pac";
 
 export const useUpdateCartShippingAddress = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: getUpdateCartShippingAddressMutationKey(),
-    mutationFn: (data: UpdateCartShippingAddressSchema) =>
-      updateCartShippingAddress(data),
+    mutationFn: async (data: {
+      shippingAddressId: string;
+      shippingMethod: ShippingMethod;
+      shippingPrice: number;
+    }) => {
+      return await updateCartShippingAddress(data);
+    },
+
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: getUseCartQueryKey(),
-      });
+      queryClient.invalidateQueries({ queryKey: getUseCartQueryKey() });
+    },
+
+    onError: (err) => {
+      console.error("Erro ao atualizar método de entrega:", err);
     },
   });
 };
