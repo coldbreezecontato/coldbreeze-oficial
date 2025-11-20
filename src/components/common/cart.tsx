@@ -76,6 +76,7 @@ export const Cart = () => {
                     quantity={item.quantity}
                     productVariantSizeId={item.productVariantSize?.id ?? null}
                     sizeName={item.productVariantSize?.size?.name ?? null}
+                    productStock={item.productVariant.product.stock ?? 1}
                   />
                 ))}
               </div>

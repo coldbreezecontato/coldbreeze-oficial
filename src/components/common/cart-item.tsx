@@ -5,7 +5,6 @@ import Image from "next/image";
 import { toast } from "sonner";
 
 import { formatCentsToBRL } from "@/helpers/money";
-
 import { Button } from "@/components/ui/button";
 
 // 🔥 MUTATIONS NOVAS COM SIZE
@@ -26,6 +25,7 @@ interface CartItemProps {
   sizeName: string | null;
 
   quantity: number;
+  productStock: number;
 }
 
 const CartItem = ({
@@ -41,14 +41,17 @@ const CartItem = ({
   sizeName,
 
   quantity,
+  productStock,
 }: CartItemProps) => {
   const removeMutation = useRemoveProductFromCart(id);
   const decreaseMutation = useDecreaseCartProduct(id);
-
   const increaseMutation = useIncreaseCartProduct(
     productVariantId,
     productVariantSizeId!,
   );
+
+  const disableMinus = quantity <= 1;
+  const disablePlus = quantity >= productStock;
 
   const handleRemove = () => {
     removeMutation.mutate(undefined, {
@@ -58,28 +61,31 @@ const CartItem = ({
   };
 
   const handleDecrease = () => {
-    decreaseMutation.mutate(undefined, {
-      onSuccess: () => {},
-    });
+    if (disableMinus) return;
+    decreaseMutation.mutate();
   };
 
   const handleIncrease = () => {
-    increaseMutation.mutate(undefined, {
-      onSuccess: () => {},
-    });
+    if (disablePlus) {
+      toast.error("Estoque insuficiente! Você atingiu o limite disponível.");
+      return;
+    }
+    increaseMutation.mutate();
   };
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-white/10 bg-gradient-to-b from-[#0a0f1f]/40 to-[#0b1220]/60 p-4 transition hover:border-cyan-400/30 hover:shadow-[0_0_12px_rgba(0,255,255,0.15)] sm:flex-row sm:items-center sm:justify-between sm:gap-6">
       {/* 🔹 Imagem + informações */}
       <div className="flex items-center gap-4">
-        <Image
-          src={productVariantImageUrl}
-          alt={productVariantName}
-          width={80}
-          height={80}
-          className="rounded-lg border border-white/10 object-cover"
-        />
+        <div className="overflow-hidden rounded-lg border border-white/10">
+          <Image
+            src={productVariantImageUrl}
+            alt={productVariantName}
+            width={80}
+            height={80}
+            className="object-cover"
+          />
+        </div>
 
         <div className="flex flex-col justify-between">
           <p className="text-sm font-semibold text-white sm:text-base">
@@ -100,7 +106,12 @@ const CartItem = ({
             <Button
               variant="ghost"
               size="icon"
-              className="h-5 w-5 text-gray-300 hover:text-cyan-300"
+              disabled={disableMinus || decreaseMutation.isPending}
+              className={
+                disableMinus
+                  ? "cursor-not-allowed opacity-30"
+                  : "hover:text-cyan-300"
+              }
               onClick={handleDecrease}
             >
               <MinusIcon className="h-4 w-4" />
@@ -113,12 +124,24 @@ const CartItem = ({
             <Button
               variant="ghost"
               size="icon"
-              className="h-5 w-5 text-gray-300 hover:text-cyan-300"
+              disabled={disablePlus || increaseMutation.isPending}
+              className={
+                disablePlus
+                  ? "cursor-not-allowed opacity-30"
+                  : "hover:text-cyan-300"
+              }
               onClick={handleIncrease}
             >
               <PlusIcon className="h-4 w-4" />
             </Button>
           </div>
+
+          {/* 🔥 Mensagem de estoque no limite */}
+          {disablePlus && (
+            <p className="mt-1 text-[10px] text-red-400">
+              Estoque máximo disponível: {productStock}
+            </p>
+          )}
         </div>
       </div>
 
