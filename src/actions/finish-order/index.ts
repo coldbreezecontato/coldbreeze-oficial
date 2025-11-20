@@ -101,6 +101,9 @@ export const finishOrder = async ({
     const [order] = await tx
       .insert(orderTable)
       .values({
+        // =======================
+        // 📦 Dados do cliente/entrega
+        // =======================
         email: shippingAddress.email,
         zipCode: shippingAddress.zipCode,
         country: shippingAddress.country,
@@ -115,14 +118,24 @@ export const finishOrder = async ({
         street: shippingAddress.street,
         userId: session.user.id,
 
-        // 🔥 Agora salva tudo corretamente:
+        // =======================
+        // 🚚 ENTREGA
+        // =======================
+        shippingMethod: cart.shippingMethod,       // 🔥 AGORA SALVA CORRETAMENTE
+        shippingInCents: shippingInCents,
+
+        // =======================
+        // 💰 FINANCEIRO
+        // =======================
         subtotalInCents,
-        shippingInCents,
         discountInCents,
         totalPriceInCents,
 
+        // =======================
+        // IDs
+        // =======================
         shippingAddressId: shippingAddress.id,
-        couponId: couponId,
+        couponId,
       })
       .returning();
 
@@ -130,8 +143,9 @@ export const finishOrder = async ({
 
     orderId = order.id;
 
-    // ------------------------------------------------------------
-
+    // =======================
+    // 📦 Itens do pedido
+    // =======================
     const orderItemsPayload: Array<typeof orderItemTable.$inferInsert> =
       cart.items.map((item) => ({
         orderId: order.id,
@@ -143,7 +157,9 @@ export const finishOrder = async ({
 
     await tx.insert(orderItemTable).values(orderItemsPayload);
 
-    // 🔥 Apagar carrinho com segurança
+    // =======================
+    // 🧹 Limpa carrinho
+    // =======================
     await tx.delete(cartItemTable).where(eq(cartItemTable.cartId, cart.id));
     await tx.delete(cartTable).where(eq(cartTable.id, cart.id));
   });

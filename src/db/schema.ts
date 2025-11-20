@@ -255,6 +255,8 @@ export const orderTable = pgTable("order", {
     { onDelete: "set null" },
   ),
 
+  shippingMethod: text("shipping_method").notNull().default("cold"),
+
   recipientName: text().notNull(),
   street: text().notNull(),
   number: text().notNull(),

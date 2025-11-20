@@ -1,0 +1,1 @@
+ALTER TABLE "order" ADD COLUMN "shipping_method" text DEFAULT 'cold' NOT NULL;
