@@ -99,8 +99,8 @@ export default function AdminDashboard({
 
       const existingIndex = currentSizes.findIndex((s) => s.sizeId === sizeId);
 
-      // Se não tem estoque ou valor inválido → remove tamanho da variante
-      if (stock === null || !Number.isFinite(stock) || stock <= 0) {
+      // 🔥 CORREÇÃO: 0 agora é permitido!
+      if (stock === null || Number.isNaN(stock)) {
         if (existingIndex >= 0) currentSizes.splice(existingIndex, 1);
       } else {
         if (existingIndex >= 0) {
@@ -128,7 +128,6 @@ export default function AdminDashboard({
     formData.append("description", description);
     formData.append("variants", JSON.stringify(variants));
     formData.append("stock", String(stock));
-
 
     const res = await createProduct(formData);
 
@@ -274,8 +273,7 @@ export default function AdminDashboard({
 
                 {sizes.length === 0 && (
                   <p className="text-muted-foreground text-xs">
-                    Nenhum tamanho cadastrado ainda. Cadastre acima em
-                    &quot;Tamanhos Disponíveis&quot;.
+                    Nenhum tamanho cadastrado ainda.
                   </p>
                 )}
 

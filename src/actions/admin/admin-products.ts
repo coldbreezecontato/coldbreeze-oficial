@@ -35,7 +35,7 @@ export async function createProduct(formData: FormData): Promise<ActionResult> {
 
     const variantsJSON = (formData.get("variants") || "[]").toString();
 
-    // 🔥 CORREÇÃO: ler o estoque total
+    // Estoque total
     const stockRaw = formData.get("stock");
     const stock = Number(stockRaw) || 0;
 
@@ -60,7 +60,7 @@ export async function createProduct(formData: FormData): Promise<ActionResult> {
       slug,
       categoryId,
       description,
-      stock, // 🔥 Salva corretamente no banco!
+      stock,
     });
 
     /* ------------------ CREATE VARIANTS ------------------ */
@@ -84,14 +84,17 @@ export async function createProduct(formData: FormData): Promise<ActionResult> {
         for (const size of variant.sizes) {
           const stockNumber = Number(size.stock);
 
-          if (!size.sizeId || !Number.isFinite(stockNumber) || stockNumber <= 0)
+          // 🔥 CORREÇÃO: agora estoque 0 é permitido!
+          // Ignora APENAS se stock = null ou NaN
+          if (!size.sizeId || Number.isNaN(stockNumber)) {
             continue;
+          }
 
           await db.insert(productVariantSizeTable).values({
             id: crypto.randomUUID(),
             productVariantId: variantId,
             sizeId: size.sizeId,
-            stock: stockNumber,
+            stock: stockNumber, // 0 incluído
             createdAt: new Date(),
           });
         }
