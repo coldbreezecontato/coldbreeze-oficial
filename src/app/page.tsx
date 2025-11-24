@@ -36,7 +36,7 @@ const Home = async () => {
       <div className="space-y-2">
         <ProductGrid products={newlyCreatedProducts} title="Novos produtos" />
 
-        <div className="bg-transparent mt-5">
+        <div className="mt-5 bg-transparent">
           <CategorySelector categories={categories} />
         </div>
       </div>

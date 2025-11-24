@@ -230,7 +230,7 @@ const Orders = ({ orders }: OrdersProps) => {
                     <div className="bg-[#0d1529] border border-white/10 rounded-lg p-4 mb-4">
                       <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
                         <ArrowRight className="h-4 w-4 text-cyan-400" />
-                        Progresso do pedido
+                        Processo do pedido
                       </h3>
 
                       <div className="space-y-2 text-xs text-gray-300">
@@ -261,17 +261,6 @@ const Orders = ({ orders }: OrdersProps) => {
                     <div className="flex gap-3 mt-3">
                       {order.status === "pending" && (
                         <>
-                          <button
-                            disabled={isPending}
-                            onClick={() => handleAction(order.id, "retry")}
-                            className="
-                              rounded-md bg-cyan-600 px-3 py-1 text-sm font-semibold 
-                              hover:bg-cyan-700 transition-all shadow-lg 
-                              disabled:opacity-50
-                            "
-                          >
-                            {isPending ? "Processando..." : "Pagar agora"}
-                          </button>
 
                           <button
                             disabled={isPending}
