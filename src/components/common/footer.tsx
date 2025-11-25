@@ -1,3 +1,5 @@
+import { Instagram, Mail, Phone } from "lucide-react";
+
 const Footer = () => {
   return (
     <footer className="w-full bg-zinc-950 text-zinc-400 border-t border-white/5">
@@ -10,10 +12,31 @@ const Footer = () => {
 
         {/* Links */}
         <nav className="flex flex-wrap items-center justify-center gap-6 text-sm">
-          <a href="/sobre" className="hover:text-white transition-colors">Sobre</a>
-          <a href="/contato" className="hover:text-white transition-colors">Contato</a>
-          <a href="/privacidade" className="hover:text-white transition-colors">Privacidade</a>
-          <a href="/termos" className="hover:text-white transition-colors">Termos</a>
+          <a
+                href="https://www.instagram.com/coldbreeze_outlet"
+                target="_blank"
+                className="flex items-center md:justify-end gap-2 hover:text-white hover:drop-shadow-[0_0_6px_rgba(56,189,248,0.45)] transition"
+              >
+                <Instagram size={17} />
+                Instagram
+              </a>
+
+              <a
+                href="https://wa.me/5511992656960"
+                target="_blank"
+                className="flex items-center md:justify-end gap-2 hover:text-white hover:drop-shadow-[0_0_6px_rgba(56,189,248,0.45)] transition"
+              >
+                <Phone size={17} />
+                WhatsApp
+              </a>
+
+              <a
+                href="mailto:contato@coldbreeze.com.br"
+                className="flex items-center md:justify-end gap-2 hover:text-white hover:drop-shadow-[0_0_6px_rgba(56,189,248,0.45)] transition"
+              >
+                <Mail size={17} />
+                E-mail
+              </a>
         </nav>
 
         {/* Créditos */}
