@@ -44,7 +44,7 @@ export const Header = () => {
           </div>
           <span className="text-[#afb9d8] font-semibold"> CUPOM:</span>
           <span className="font-bold text-white tracking-wider bg-[#afb9d8]/20 px-2 py-0.5 rounded-md border border-[#afb9d8]/30">
-            PRIMEIRACOMPRA
+            1DEJANEIRO
           </span>
           <span className="text-blue-200">
             — Ganhe <span className="font-bold text-[#afb9d8]">10% OFF</span>
